@@ -1,0 +1,40 @@
+{
+ "timestamp": "2026-11-06T23:00:52+0500",
+ "kind": "static",
+ "source_revision": {
+  "vllm_tag": "v0.25.1",
+  "vllm_commit": "752a3a504485790a2e8491cacbb35c137339ad34",
+  "stokastisk_git": "59f26c5"
+ },
+ "tool_versions": {
+  "python": "3.13.15"
+ },
+ "input_hashes": {
+  "stage.zip": "7ea5e7a70f7dee7bec77755ff8457f3cef05baf9566179a27170aa506d7a4798",
+  "stokastisk-0.3.0-py3-none-any.whl": "3bc430f85ed18e1a9c93c9b3d49facebb8b4a0986c0026b370d19e2cc84b3e29",
+  "vllm-0.25.1-cp38-abi3-linux_x86_64.whl": "866c4c5e4ca4749234e92cd1edc0a2003eb8c6bd10be2cefe51ca2b2c6cf8a98"
+ },
+ "commands": [
+  "zipfile.testzip",
+  "extract + sha256 verify",
+  "forbidden-content scan"
+ ],
+ "failures": [],
+ "warnings": [],
+ "zip": "stokastisk-0.3.0-kaggle-t4-sm75.zip",
+ "zip_size": 37000525,
+ "zip_sha256": "2c65c323a8b5153d1564fcb950d871d424c93b3b74d4e4d7fe3986b6a6ab400f",
+ "zip_test": null,
+ "entries": 72,
+ "hash_mismatches": [],
+ "discoverable_roots_for_glob_/kaggle/input/**/manifests/SHA256SUMS": [
+  "stokastisk-0.3.0-kaggle-t4-sm75"
+ ],
+ "scripts_kaggle_present": true,
+ "forbidden_names_in_zip": [],
+ "possible_secret_strings": [],
+ "wheels": {
+  "stokastisk-0.3.0-py3-none-any.whl": 13141,
+  "vllm-0.25.1-cp38-abi3-linux_x86_64.whl": 38067310
+ }
+}

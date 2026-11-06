@@ -1,0 +1,41 @@
+--- a/vllm/compilation/passes/pass_manager.py	2026-11-06 22:26:01.090610294 +0500
++++ b/vllm/compilation/passes/pass_manager.py	2026-11-06 22:47:47.980113811 +0500
+@@ -44,7 +44,8 @@
+     from .utility.split_coalescing import SplitCoalescingPass
+ 
+ if current_platform.is_cuda():
+-    from .fusion.allreduce_rms_fusion import AllReduceFusionPass
++    # Stokastisk T4 build: the FlashInfer-comm based allreduce+RMSNorm fusion is intentionally absent.
++    AllReduceFusionPass = None  # type: ignore[assignment,misc]
+     from .fusion.collective_fusion import AsyncTPPass
+ 
+ if current_platform.is_xpu():
+@@ -157,6 +158,11 @@
+                 if rocm_aiter_ops.is_enabled():
+                     self.passes += [RocmAiterAllReduceFusionPass(config)]
+                 else:
++                    if AllReduceFusionPass is None:
++                        raise RuntimeError(
++                            "fuse_allreduce_rms requires FlashInfer, which is not part of the "
++                            "Stokastisk T4/Triton-only build; disable it."
++                        )
+                     self.passes += [AllReduceFusionPass(config)]
+ 
+             if self.pass_config.fuse_norm_quant:
+--- a/vllm/config/compilation.py	2026-11-06 22:26:01.065809223 +0500
++++ b/vllm/config/compilation.py	2026-11-06 22:47:32.698307346 +0500
+@@ -197,10 +197,10 @@
+ 
+     @staticmethod
+     def default_fi_allreduce_fusion_max_size_mb() -> dict[int, float]:
+-        from vllm.compilation.passes.fusion.allreduce_rms_fusion import (
+-            FI_ALLREDUCE_FUSION_MAX_SIZE_MB,
+-        )
+-        from vllm.platforms import current_platform
++        # Stokastisk T4 build: FlashInfer allreduce fusion is absent -> no size table.
++        return {}
++        from vllm.platforms import current_platform  # noqa: unreachable
++        FI_ALLREDUCE_FUSION_MAX_SIZE_MB: dict = {}
+ 
+         if not current_platform.is_cuda():
+             return {}

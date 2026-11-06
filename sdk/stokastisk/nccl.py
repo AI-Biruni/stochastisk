@@ -29,4 +29,8 @@ def run_collective_selftest() -> dict[str, Any]:
     finally:
         dist.destroy_process_group()
         res["cleanup"] = "process group destroyed"
+        torch.cuda.synchronize(); torch.cuda.empty_cache()
+        free, total = torch.cuda.mem_get_info()
+        res["gpu_mem_used_MiB_after_teardown"] = (total - free) >> 20
+        res["dist_initialized_after_teardown"] = dist.is_initialized()
     return res

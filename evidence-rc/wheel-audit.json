@@ -1,0 +1,300 @@
+{
+ "timestamp": "2026-11-06T22:55:05+0500",
+ "kind": "static",
+ "tool_versions": {
+  "python": "3.13.15",
+  "nvcc": "Cuda compilation tools, release 13.0, V13.0.48",
+  "readelf": "GNU readelf (GNU Binutils for Ubuntu) 2.42",
+  "cuobjdump": "Build cuda_13.0.r13.0/compiler.36195134_0"
+ },
+ "commands": [
+  "zipfile.testzip",
+  "RECORD sha256 verify"
+ ],
+ "source": {
+  "tag": "v0.25.1",
+  "commit": "752a3a504485790a2e8491cacbb35c137339ad34"
+ },
+ "vllm_wheel": {
+  "file": "vllm-0.25.1-cp38-abi3-linux_x86_64.whl",
+  "size": 38067310,
+  "sha256": "866c4c5e4ca4749234e92cd1edc0a2003eb8c6bd10be2cefe51ca2b2c6cf8a98",
+  "zip_test": null,
+  "entries": 2549,
+  "record_rows": 2549,
+  "record_mismatches": 0,
+  "unlisted_files": [],
+  "wheel_file": [
+   "Wheel-Version: 1.0",
+   "Generator: stokastisk-build_t4_wheel",
+   "Root-Is-Purelib: false",
+   "Tag: cp38-abi3-linux_x86_64"
+  ],
+  "requires_dist": [
+   "regex",
+   "cachetools",
+   "psutil",
+   "sentencepiece",
+   "numpy",
+   "requests>=2.26.0",
+   "tqdm",
+   "py-cpuinfo",
+   "transformers>=5.5.3",
+   "tokenizers>=0.21.1",
+   "safetensors>=0.6.2",
+   "fastapi>=0.133.0",
+   "starlette>=1.0.1",
+   "aiohttp>=3.13.3",
+   "openai>=2.0.0",
+   "pydantic>=2.12.0",
+   "prometheus_client>=0.18.0",
+   "pillow",
+   "tiktoken>=0.6.0",
+   "typing_extensions>=4.10",
+   "filelock>=3.16.1",
+   "pyzmq>=25.0.0",
+   "pyyaml",
+   "einops",
+   "cloudpickle",
+   "opentelemetry-sdk>=1.27.0",
+   "opentelemetry-api>=1.27.0",
+   "apache-tvm-ffi==0.1.9",
+   "xgrammar<1.0.0,>=0.2.1",
+   "llguidance<1.8.0,>=1.7.0",
+   "cbor2",
+   "msgspec",
+   "openai-harmony>=0.0.3",
+   "partial-json-parser",
+   "pybase64",
+   "uvloop",
+   "fastapi-cli ; extra == \"server\"",
+   "sse-starlette ; extra == \"server\"",
+   "pydantic-settings ; extra == \"server\"",
+   "model-hosting-container-standards<1.0.0,>=0.1.14 ; extra == \"server\"",
+   "prometheus-fastapi-instrumentator>=8.0.0 ; extra == \"server\"",
+   "opentelemetry-exporter-otlp>=1.27.0 ; extra == \"observability\"",
+   "opentelemetry-semantic-conventions-ai>=0.4.1 ; extra == \"observability\"",
+   "compressed-tensors==0.17.0 ; extra == \"models\"",
+   "mistral_common[image]>=1.11.5 ; extra == \"models\"",
+   "lm-format-enforcer==0.11.3 ; extra == \"models\"",
+   "outlines_core==0.2.14 ; extra == \"models\"",
+   "diskcache==5.6.3 ; extra == \"models\"",
+   "interegular ; extra == \"models\"",
+   "depyf==0.20.0 ; extra == \"models\"",
+   "ijson ; extra == \"models\"",
+   "setproctitle ; extra == \"models\""
+  ],
+  "requires_python": "Requires-Python: <3.15,>=3.10",
+  "native_extensions": [
+   {
+    "name": "vllm/_C_stable_libtorch.abi3.so",
+    "size": 115357008
+   },
+   {
+    "name": "vllm/_moe_C_stable_libtorch.abi3.so",
+    "size": 21099888
+   },
+   {
+    "name": "vllm/_rust_tool_parser.abi3.so",
+    "size": 996096
+   },
+   {
+    "name": "vllm/cumem_allocator.abi3.so",
+    "size": 110496
+   },
+   {
+    "name": "vllm/fs_io_C.abi3.so",
+    "size": 80864
+   },
+   {
+    "name": "vllm/spinloop.abi3.so",
+    "size": 42440
+   }
+  ],
+  "python_files": 1951
+ },
+ "stokastisk_wheel": {
+  "file": "stokastisk-0.3.0-py3-none-any.whl",
+  "size": 13141,
+  "sha256": "3bc430f85ed18e1a9c93c9b3d49facebb8b4a0986c0026b370d19e2cc84b3e29",
+  "zip_test": null,
+  "entries": 12,
+  "record_rows": 12,
+  "record_mismatches": 0,
+  "unlisted_files": [],
+  "wheel_file": [
+   "Wheel-Version: 1.0",
+   "Generator: setuptools (78.1.0)",
+   "Root-Is-Purelib: true",
+   "Tag: py3-none-any",
+   ""
+  ],
+  "requires_dist": [
+   "vllm==0.25.1"
+  ],
+  "requires_python": "Requires-Python: <3.14,>=3.13",
+  "native_extensions": [],
+  "python_files": 7
+ },
+ "original_build_wheel_for_comparison": {
+  "file": "vllm-0.25.1-cp38-abi3-linux_x86_64.whl",
+  "size": 285141763,
+  "sha256": "158f3f628e20d296f2701001dc5fbf5eb54bc49778f54af0735e9808d0376eb7",
+  "zip_test": null,
+  "entries": 3579,
+  "record_rows": 3579,
+  "record_mismatches": 0,
+  "unlisted_files": [],
+  "wheel_file": [
+   "Wheel-Version: 1.0",
+   "Generator: setuptools (80.10.2)",
+   "Root-Is-Purelib: false",
+   "Tag: cp38-abi3-linux_x86_64",
+   ""
+  ],
+  "requires_dist": [
+   "regex",
+   "cachetools",
+   "psutil",
+   "sentencepiece",
+   "numpy",
+   "requests>=2.26.0",
+   "tqdm",
+   "blake3",
+   "py-cpuinfo",
+   "transformers>=5.5.3",
+   "tokenizers>=0.21.1",
+   "safetensors>=0.6.2",
+   "protobuf!=6.30.*,!=6.31.*,!=6.32.*,!=6.33.0.*,!=6.33.1.*,!=6.33.2.*,!=6.33.3.*,!=6.33.4.*,>=5.29.6",
+   "fastapi[standard]<0.137.0,>=0.133.0",
+   "starlette>=1.0.1",
+   "aiohttp>=3.13.3",
+   "openai>=2.0.0",
+   "pydantic>=2.12.0",
+   "prometheus_client>=0.18.0",
+   "pillow",
+   "prometheus-fastapi-instrumentator>=8.0.0",
+   "tiktoken>=0.6.0",
+   "lm-format-enforcer==0.11.3",
+   "llguidance<1.8.0,>=1.7.0; platform_machine == \"x86_64\" or platform_machine == \"arm64\" or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\"",
+   "outlines_core==0.2.14",
+   "diskcache==5.6.3",
+   "lark==1.2.2",
+   "xgrammar<1.0.0,>=0.2.1; platform_machine == \"x86_64\" or platform_machine == \"aarch64\" or platform_machine == \"arm64\" or platform_machine == \"s390x\" or platform_machine == \"ppc64le\"",
+   "typing_extensions>=4.10",
+   "filelock>=3.16.1",
+   "partial-json-parser",
+   "jsonschema>=4.23.0",
+   "pyzmq>=25.0.0",
+   "msgspec",
+   "mistral_common[image]>=1.11.5",
+   "opencv-python-headless>=4.13.0",
+   "pyyaml",
+   "six>=1.16.0; python_version > \"3.11\"",
+   "setuptools<81.0.0,>=77.0.3; python_version > \"3.11\"",
+   "einops",
+   "compressed-tensors==0.17.0",
+   "depyf==0.20.0",
+   "cloudpickle",
+   "watchfiles",
+   "python-json-logger",
+   "ninja",
+   "pybase64",
+   "cbor2",
+   "ijson",
+   "setproctitle",
+   "openai-harmony>=0.0.3",
+   "anthropic>=0.71.0",
+   "model-hosting-container-standards<1.0.0,>=0.1.14",
+   "mcp",
+   "opentelemetry-sdk>=1.27.0",
+   "opentelemetry-api>=1.27.0",
+   "opentelemetry-exporter-otlp>=1.27.0",
+   "opentelemetry-semantic-conventions-ai>=0.4.1",
+   "numba==0.65.0",
+   "torch==2.11.0",
+   "torchaudio==2.11.0",
+   "torchvision==0.26.0",
+   "torchcodec>=0.14",
+   "PyNvVideoCodec==2.0.4",
+   "flashinfer-python==0.6.13",
+   "flashinfer-cubin==0.6.13",
+   "apache-tvm-ffi==0.1.9",
+   "tilelang==0.1.9",
+   "nvidia-cudnn-frontend>=1.19.1",
+   "nvtx==0.2.15",
+   "fastsafetensors>=0.3.2",
+   "nvidia-cutlass-dsl[cu13]==4.5.2",
+   "quack-kernels>=0.3.3",
+   "tokenspeed-mla==0.1.2; platform_system == \"Linux\"",
+   "humming-kernels[cu13]==0.1.10",
+   "zentorch==2.11.0.0; extra == \"zen\"",
+   "pandas; extra == \"bench\"",
+   "matplotlib; extra == \"bench\"",
+   "seaborn; extra == \"bench\"",
+   "datasets; extra == \"bench\"",
+   "scipy; extra == \"bench\"",
+   "plotly; extra == \"bench\"",
+   "tensorizer==2.10.1; extra == \"tensorizer\"",
+   "fastsafetensors>=0.3.2; extra == \"fastsafetensors\"",
+   "instanttensor>=0.1.5; extra == \"instanttensor\"",
+   "runai-model-streamer[azure,gcs,s3]>=0.15.7; extra == \"runai\"",
+   "av; extra == \"audio\"",
+   "scipy; extra == \"audio\"",
+   "soundfile; extra == \"audio\"",
+   "soxr; extra == \"audio\"",
+   "mistral_common[audio]; extra == \"audio\"",
+   "helion==1.1.0; extra == \"helion\"",
+   "smg-grpc-servicer[vllm]>=0.5.2; extra == \"grpc\"",
+   "opentelemetry-sdk>=1.26.0; extra == \"otel\"",
+   "opentelemetry-api>=1.26.0; extra == \"otel\"",
+   "opentelemetry-exporter-otlp>=1.26.0; extra == \"otel\"",
+   "opentelemetry-semantic-conventions-ai>=0.4.1; extra == \"otel\"",
+   "vllm-gguf-plugin>=0.0.2; extra == \"extra-quant\""
+  ],
+  "requires_python": "Requires-Python: <3.15,>=3.10",
+  "native_extensions": [
+   {
+    "name": "vllm/_C_stable_libtorch.abi3.so",
+    "size": 115357008
+   },
+   {
+    "name": "vllm/_moe_C_stable_libtorch.abi3.so",
+    "size": 21099888
+   },
+   {
+    "name": "vllm/_rust_tool_parser.abi3.so",
+    "size": 996096
+   },
+   {
+    "name": "vllm/cumem_allocator.abi3.so",
+    "size": 110496
+   },
+   {
+    "name": "vllm/fs_io_C.abi3.so",
+    "size": 80864
+   },
+   {
+    "name": "vllm/spinloop.abi3.so",
+    "size": 42440
+   },
+   {
+    "name": "vllm/vllm_flash_attn/_vllm_fa2_C.abi3.so",
+    "size": 59727808
+   },
+   {
+    "name": "vllm/vllm_flash_attn/_vllm_fa3_C.abi3.so",
+    "size": 856945464
+   }
+  ],
+  "python_files": 2106
+ },
+ "vs_original_build": {
+  "only_in_original": 1353,
+  "only_in_t4": 323,
+  "only_in_original_native": [
+   "vllm/vllm_flash_attn/_vllm_fa2_C.abi3.so",
+   "vllm/vllm_flash_attn/_vllm_fa3_C.abi3.so"
+  ]
+ }
+}

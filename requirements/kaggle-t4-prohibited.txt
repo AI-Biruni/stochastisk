@@ -1,0 +1,18 @@
+# Never installed, never present. Checked as distribution names AND importable modules AND binaries.
+flash-attn
+flash_attn
+vllm-flash-attn
+flashinfer
+flashinfer-python
+flashinfer-cubin
+flashinfer-jit-cache
+# pulled the CUDA 13.2 compiler packages onto Kaggle in the failed run (via flashinfer-python / humming-kernels[cu13])
+cuda-tile
+nvidia-cuda-tileiras
+humming-kernels
+nvidia-cutlass-dsl
+nvidia-cutlass-dsl-libs-base
+nvidia-cutlass-dsl-libs-cu13
+quack-kernels
+tokenspeed-mla
+tokenspeed-triton

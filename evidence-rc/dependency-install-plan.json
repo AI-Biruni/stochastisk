@@ -1,0 +1,35 @@
+{
+ "timestamp": "2026-11-06T23:00:46+0500",
+ "kind": "static + local",
+ "source_revision": {
+  "vllm_tag": "v0.25.1",
+  "vllm_commit": "752a3a504485790a2e8491cacbb35c137339ad34",
+  "stokastisk_git": "59f26c5"
+ },
+ "tool_versions": {
+  "python": "3.13.15"
+ },
+ "input_hashes": {
+  "stage.zip": "7ea5e7a70f7dee7bec77755ff8457f3cef05baf9566179a27170aa506d7a4798",
+  "stokastisk-0.3.0-py3-none-any.whl": "3bc430f85ed18e1a9c93c9b3d49facebb8b4a0986c0026b370d19e2cc84b3e29",
+  "vllm-0.25.1-cp38-abi3-linux_x86_64.whl": "866c4c5e4ca4749234e92cd1edc0a2003eb8c6bd10be2cefe51ca2b2c6cf8a98"
+ },
+ "commands": [
+  "make_plan() on synthetic Kaggle-baseline snapshot (versions from executed notebook logs) with the real candidate wheel metadata"
+ ],
+ "failures": [],
+ "warnings": [],
+ "core_pins": [
+  "apache-tvm-ffi==0.1.9",
+  "xgrammar==0.2.5.post1",
+  "llguidance==1.7.6",
+  "cbor2==6.2.0.post2",
+  "msgspec==0.22.0",
+  "openai-harmony==0.0.8",
+  "partial-json-parser==0.2.1.1.post7",
+  "pybase64==1.5.1"
+ ],
+ "download_bytes_measured": 57259125,
+ "download_note": "pip download --no-deps of the 8 pins, measured locally; previous failed install fetched ~178 files (see 02-stokastisk-installation.ipynb)",
+ "installs_with_resolver": false
+}

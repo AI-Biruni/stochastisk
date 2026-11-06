@@ -113,6 +113,26 @@ class SDKTests(unittest.TestCase):
         with self.assertRaises(errors.EngineError):
             LLM("x")
 
+    def test_prohibited_report_shape_and_detection(self):
+        from stokastisk import diagnostics
+        r = stokastisk.prohibited_report()
+        self.assertEqual(set(r), {"distributions", "modules", "binaries", "clean"})
+        import importlib.util, unittest.mock as m
+        real = importlib.util.find_spec
+        with m.patch("importlib.util.find_spec", lambda n, *a, **k: object() if n == "flashinfer" else real(n, *a, **k)):
+            self.assertIn("flashinfer", diagnostics.prohibited_report()["modules"])
+            self.assertFalse(diagnostics.prohibited_report()["clean"])
+
+    def test_validate_environment_rejects_flashinfer(self):
+        from stokastisk import diagnostics
+        import unittest.mock as m
+        with m.patch.object(diagnostics, "prohibited_report", lambda: {"clean": False, "modules": ["flashinfer"]}):
+            with self.assertRaises(errors.EnvironmentValidationError):
+                diagnostics.validate_environment(require_gpus=0, strict_torch=False)
+
+    def test_triton_only_and_no_flash_in_registry_default(self):
+        self.assertEqual(StokastiskConfig().attention_backend, "TRITON_ATTN")
+
 
 if __name__ == "__main__":
     unittest.main()

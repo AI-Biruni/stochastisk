@@ -34,3 +34,7 @@ assets/
 logs/
 legacy/
 patches/*.orig
+
+dist-rc/
+evidence-rc/inventory-*.tsv
+evidence-rc/preserved-hashes-*.txt

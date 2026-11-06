@@ -1,5 +1,3 @@
-# Stokastisk 0.3.0 — EXPERIMENTAL, KAGGLE DUAL-T4 VALIDATION PENDING
-
-Python SDK (`import stokastisk`) around the real vLLM 0.25.1 engine for 2 × Tesla T4 (SM75), CPython 3.13, CUDA 13.0.
-Attention is explicitly `TRITON_ATTN` (vLLM's built-in Triton backend). FlashAttention is not shipped or selectable.
-See `docs/` and `INSTALL.md`.
+# Stokastisk 0.3.0 — Kaggle dual Tesla T4 (SM75) · vLLM 0.25.1 · CUDA 13.0 · Python 3.13 · Triton attention only
+**RELEASE CANDIDATE — STATICALLY VERIFIED, LOCALLY TESTED, KAGGLE TEST PENDING.** Not production ready.
+No FlashAttention. No FlashInfer. See `docs/ARCHITECTURE.md`, `docs/DEPENDENCIES.md`, `INSTALL.md`, `evidence/`.

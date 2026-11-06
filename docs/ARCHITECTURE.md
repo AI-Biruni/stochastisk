@@ -1,35 +1,42 @@
-# Architecture (Stokastisk 0.3.0)
+# Stokastisk 0.3.0 — T4/Triton-only architecture
 
-**Status: EXPERIMENTAL — KAGGLE DUAL-T4 VALIDATION PENDING.**
+**Status: RELEASE CANDIDATE — STATICALLY VERIFIED, LOCALLY TESTED, KAGGLE TEST PENDING.** Not production ready.
 
-## Packaging (decision: two wheels in one offline bundle)
-| Wheel | Tag | Contents |
-|---|---|---|
-| `stokastisk-0.3.0-py3-none-any.whl` | pure Python | `import stokastisk` SDK; declares `Requires-Dist: vllm==0.25.1`, `Requires-Python >=3.13,<3.14` |
-| `vllm-0.25.1-cp38-abi3-linux_x86_64.whl` | stable-ABI, linux_x86_64 (NOT manylinux) | real vLLM 0.25.1 + native extensions (`_C_stable_libtorch`, `_moe_C_stable_libtorch`, `cumem_allocator`, `spinloop`, `fs_io_C`, `_rust_tool_parser`) built for sm_75 against CUDA 13.0 |
+## Target (single supported configuration)
+Kaggle, Python 3.13, PyTorch 2.11.0+cu130, CUDA 13.0, Triton 3.6.0, NCCL 2.28.9, glibc 2.39, driver 580.x, **2 × Tesla T4 (SM75, 15 GiB), no peer access, PHB topology**.
+Other GPUs are unsupported on purpose: the native extensions contain `sm_75` cubins only (no PTX).
 
-A single merged wheel was rejected: it would collide with vLLM's own `.dist-info`/metadata and make `pip` treat Stokastisk as vLLM.
-The SDK wheel is pure Python, so the honest tag is `py3-none-any`; the vLLM wheel keeps the tag its build produced.
-The vLLM wheel is *derived*: the original 285 MB build output contained FlashAttention binaries (`_vllm_fa2_C`, `_vllm_fa3_C`),
-which this release forbids; they were removed (see `patches/README.md`). Python sources of `vllm/vllm_flash_attn` remain (they are only imported by the FlashAttention backend).
-Wheel-level `Requires-Dist` is pinned `vllm==0.25.1`; install both with `--no-deps` (`02_install.py` does).
+## Components
+| Piece | What it is |
+|---|---|
+| `stokastisk-0.3.0-py3-none-any.whl` | pure-Python SDK (`import stokastisk`): config validation, T4 checks, NCCL helpers, prohibited-package diagnostics, thin wrapper over `vllm.LLM` |
+| `vllm-0.25.1-cp38-abi3-linux_x86_64.whl` | vLLM 0.25.1 **derived** T4-only distribution (see below) |
+| `requirements/` | exact `--no-deps` pins + constraints + prohibited list |
+| `scripts/kaggle`, `notebooks/` | installer and six acceptance stages (not executed by the author) |
+
+### How the vLLM wheel was made (honest provenance)
+1. Source: vLLM `v0.25.1`, commit `752a3a504485790a2e8491cacbb35c137339ad34` (verified against the tarball header and the GitHub tag API).
+2. Native extensions (`_C_stable_libtorch`, `_moe_C_stable_libtorch`, `cumem_allocator`, `spinloop`, `fs_io_C`, `_rust_tool_parser`) come from the **existing 5.5 h local build** (NVCC 13.0.48, `TORCH_CUDA_ARCH_LIST=7.5`). They were *not* rebuilt: the previous build was audited and found CUDA-13/sm_75-only. That build also compiled FlashAttention 2/3 binaries, which are **not included**. A from-scratch rebuild that never compiles them was not performed (≈5.5 h) and remains an open item.
+3. Python tree: `stage.zip` (stripped vLLM Python tree, 2,560 files) — but `stage.zip`'s own `.so` files link **`libcudart.so.12`** and were therefore discarded and replaced by the CUDA-13 build outputs above.
+4. FlashAttention/FlashInfer/FlashMLA removal (`scripts/release/build_t4_tree.py`): `vllm_flash_attn/`, `third_party/flashmla/` removed wholesale; 15 further modules removed because they import FlashInfer/FlashAttention/FlashMLA at module level (AST-detected, listed in `evidence/…`). 
+5. Patches (`patches/`): 5 files changed so that the core still imports — `fa_utils.py` (names stubbed), `rotary_embedding/common.py` (`forward_cuda` → native torch implementation instead of the Triton rotary kernel that lived inside `vllm_flash_attn`), `fused_moe/all2all_utils.py`, `compilation/passes/pass_manager.py`, `config/compilation.py` (FlashInfer allreduce fusion absent).
+6. Metadata rewritten: `Requires-Dist` is only the import-proven core; the upstream `cuda.txt` dependencies (flashinfer, cutlass-dsl, humming-kernels, …) are gone. One deliberate deviation: `fastapi>=0.133.0` instead of `<0.137` (Kaggle ships 0.141.1; the import sweep passes with it).
+
+`vllm/utils/flashinfer.py` and about 30 other `*flash*`-named upstream modules are **retained** because core modules import them; they only probe with `importlib.util.find_spec` or contain lazy imports and never import a FlashInfer/FlashAttention package at module level (AST-verified). They are inert unless the FlashInfer package is installed — which the installer, the SDK and the audits all forbid.
 
 ## Attention
-`StokastiskConfig.attention_backend` is restricted to `TRITON_ATTN`; any FlashAttention name raises `ConfigurationError`.
-It is passed as `attention_config={"backend": "TRITON_ATTN"}`. Verified in vLLM 0.25.1 source: `EngineArgs.__post_init__` converts the dict to `AttentionConfig`,
-whose `validate_backend_before` maps the string to `AttentionBackendEnum.TRITON_ATTN`. On CPU I verified `EngineArgs(...).attention_config.backend == AttentionBackendEnum.TRITON_ATTN`.
-In `vllm/platforms/cuda.py` an explicitly selected backend that is invalid for the platform raises; there is no silent fallback. `TritonAttentionBackend.supports_compute_capability` returns True.
-`LLM.verify_attention_backend()` checks the live engine's `VllmConfig`; this is config-level evidence. Kernel-level evidence is vLLM's own log line `Using AttentionBackendEnum.TRITON_ATTN backend.`, which notebook 05 greps for.
-Model-specific limits: MLA / hybrid-Mamba / sparse-attention models choose their own backends in vLLM and may not be usable with `TRITON_ATTN`; use dense decoder-only models (e.g. Qwen2.5, Llama) on T4. T4 has no bf16: use `half`.
+`StokastiskConfig(attention_backend="TRITON_ATTN")` is the only accepted value. It is passed as `attention_config={"backend": "TRITON_ATTN"}` (verified against `EngineArgs`/`AttentionConfig` in 0.25.1: dict → `AttentionConfig`, string → `AttentionBackendEnum.TRITON_ATTN`; verified on CPU that `EngineArgs(...).attention_config.backend` is `TRITON_ATTN`). vLLM 0.25.1 raises (`Selected backend … is not valid`) rather than falling back when an explicitly chosen backend is invalid, and logs `Using AttentionBackendEnum.TRITON_ATTN backend.` on success. Acceptance evidence (notebooks 05/06) is three-fold: engine config, that log line per worker, and compiled `kernel_unified_attention` artifacts in a fresh `TRITON_CACHE_DIR`. MLA / hybrid / sparse-attention model families select other backends and are unsupported here.
+
+## CUDA components
+| Component | Where it comes from |
+|---|---|
+| `libcudart.so.13` | dynamic; Kaggle's CUDA 13.0 runtime (NEEDED by the two big extensions) |
+| `libcuda.so.1` | dynamic; NVIDIA driver |
+| `libtorch*`, `libc10*` | dynamic; Kaggle's PyTorch |
+| Triton attention kernels | JIT-compiled by Triton 3.6.0 at run time (no cubin shipped) |
+| device code in `.so` | `sm_75` cubins only (`manifests/CUDA-ARCH-MANIFEST.json`) |
+| NCCL | PyTorch's (2.28.9) |
+No CUDA library is bundled. Static-vs-dynamic of individual CUDA symbols was not analysed beyond `DT_NEEDED`. glibc requirement of the native files: max GLIBC 2.38 (Kaggle has 2.39).
 
 ## NCCL / tensor parallel
-Kaggle audit: no CUDA peer access, PHB topology. Defaults: `NCCL_P2P_DISABLE=1`, `NCCL_IB_DISABLE=1`, `NCCL_CUMEM_ENABLE=0` (set before engine start, never overriding user values), vLLM `disable_custom_all_reduce=True`, `enforce_eager=True`.
-These are settings, not proof: notebook 04 runs real collectives and saves NCCL_DEBUG logs so the transport (SHM vs socket) can be read. Default TP=1; TP=2 is selectable (`tensor_parallel_size`), speed-up is not assumed (notebook 06 measures).
-
-## Native binary facts (static, from the local build; NVCC 13.0.48; Kaggle has 13.0.88)
-See `manifests/ELF-DEPENDENCY-MANIFEST.json` and `CUDA-ARCH-MANIFEST.json`. All CUDA-using extensions NEED `libcudart.so.13` (none CUDA 12) and contain only `sm_75` cubins (no PTX, so no forward compatibility — T4 only).
-`_C_stable_libtorch.abi3.so` requires GLIBC 2.38 (Ubuntu 24.04 or newer); notebook 01 checks this. Libraries not bundled and supplied by the target: libtorch*, libc10*, libcudart.so.13, libcuda.so.1 (driver), libstdc++, libgcc_s, libc.
-ABI note: files are named `*.abi3.so` and the wheel is tagged `cp38-abi3`; this was produced by the upstream `--py-limited-api=cp38` build. Import under CPython 3.13 was verified locally (CPU); full stable-ABI conformance of every symbol was not independently proven.
-
-## Known build-log findings
-The log shows `vllm-server` (Rust frontend) failed: `Could not find protoc`. The wheel still assembled; the Python engine is unaffected, but the optional Rust HTTP frontend binary is absent. `_rust_tool_parser` did build. Log has no `Traceback`/`FAILED:`/`ninja: build stopped`; the final lines show wheel assembly (`adding ...dist-info/RECORD`, `removing build/bdist...`). The process exit code itself was not recorded in the log.
+No P2P, no NVLink. Defaults set before engine start (never overriding user values): `NCCL_P2P_DISABLE=1`, `NCCL_IB_DISABLE=1`, `NCCL_CUMEM_ENABLE=0`; vLLM `disable_custom_all_reduce=True`; `enforce_eager=True`. Notebook 04 runs real all-reduce/all-gather/reduce-scatter and saves `NCCL_DEBUG` logs; TP=2 speed is measured, not assumed.

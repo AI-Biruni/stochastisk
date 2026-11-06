@@ -1,0 +1,6 @@
+# OPTIONAL (OpenAI-compatible API server). Install manually with --no-deps only if missing.
+fastapi-cli==0.0.32
+sse-starlette==3.6.0
+pydantic-settings==2.16.2
+model-hosting-container-standards==0.1.16
+prometheus-fastapi-instrumentator==8.1.0

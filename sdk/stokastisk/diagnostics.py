@@ -57,6 +57,36 @@ def flash_attn_native_loaded() -> list[str]:
     return [m for m in FLASH_NATIVE_MODULES if m in sys.modules]
 
 
+PROHIBITED_DISTS = ("flash-attn", "flash_attn", "vllm-flash-attn", "flashinfer", "flashinfer-python", "flashinfer-cubin",
+                    "flashinfer-jit-cache")
+PROHIBITED_MODULES = ("flashinfer", "flash_attn", "vllm.vllm_flash_attn")
+
+
+def prohibited_report() -> dict[str, Any]:
+    """Detect FlashAttention / FlashInfer distributions, modules and native binaries (expected: all empty)."""
+    import importlib.metadata as md
+    import importlib.util
+    import pathlib
+    norm = lambda s: s.replace("_", "-").lower()  # noqa: E731
+    dists = sorted({d.metadata["Name"] for d in md.distributions() if d.metadata["Name"] and norm(d.metadata["Name"]) in {norm(x) for x in PROHIBITED_DISTS}})
+    mods = []
+    for m in PROHIBITED_MODULES:
+        try:
+            if importlib.util.find_spec(m) is not None:
+                mods.append(m)
+        except (ImportError, ValueError):
+            pass
+    bins = []
+    try:
+        spec = importlib.util.find_spec("vllm")
+        root = pathlib.Path(next(iter(spec.submodule_search_locations))) if spec and spec.submodule_search_locations else None
+        if root:
+            bins = sorted(str(p.relative_to(root)) for p in root.rglob("*.so") if any(k in p.name.lower() for k in ("flash", "_fa2", "_fa3", "_fa4")))
+    except Exception:  # noqa: BLE001
+        pass
+    return {"distributions": dists, "modules": mods, "binaries": bins, "clean": not (dists or mods or bins)}
+
+
 def validate_environment(*, require_gpus: int = 2, strict_torch: bool = True) -> dict[str, Any]:
     """Validate the runtime against the SDK build target (CUDA 13.0 / SM75 / torch 2.11 cu130)."""
     import torch
@@ -66,6 +96,9 @@ def validate_environment(*, require_gpus: int = 2, strict_torch: bool = True) ->
         raise EnvironmentValidationError(f"torch 2.11.0 required, found {torch.__version__}")
     if torch.version.cuda is None or not torch.version.cuda.startswith(CUDA_BUILD_TARGET):
         raise EnvironmentValidationError(f"PyTorch CUDA {CUDA_BUILD_TARGET} required, found {torch.version.cuda}")
+    pr = prohibited_report()
+    if not pr["clean"]:
+        raise EnvironmentValidationError(f"FlashAttention/FlashInfer must not be present: {pr}")
     gpus = discover_gpus()
     if len(gpus) < require_gpus:
         raise GPUDiscoveryError(f"Need {require_gpus} GPU(s), found {len(gpus)}")
@@ -96,5 +129,6 @@ def report() -> dict[str, Any]:
     except Exception as e:  # noqa: BLE001
         r["vllm_error"] = f"{type(e).__name__}: {e}"
     r["flash_attn_native_loaded"] = flash_attn_native_loaded()
+    r["prohibited"] = prohibited_report()
     r["native_extensions"] = check_native_extensions()
     return r

@@ -6,7 +6,8 @@ R = []; ranks = [json.load(open(p)) for p in sorted(glob.glob(str(OUT / "04_nccl
 check(R, "two ranks reported", sorted(r["rank"] for r in ranks) == [0, 1], [r["rank"] for r in ranks])
 for r in ranks:
     check(R, f"rank{r['rank']} all-reduce/all-gather/reduce-scatter", r["ok"], r)
-    check(R, f"rank{r['rank']} cleanup", r.get("cleanup") == "process group destroyed")
+    check(R, f"rank{r['rank']} cleanup", r.get("cleanup") == "process group destroyed" and r.get("dist_initialized_after_teardown") is False)
+    check(R, f"rank{r['rank']} GPU memory released after teardown (<300 MiB)", r.get("gpu_mem_used_MiB_after_teardown", 10**6) < 300, r.get("gpu_mem_used_MiB_after_teardown"))
 logs = "".join(open(p, errors="replace").read() for p in glob.glob(str(OUT / "nccl*.log")))
 transport = sorted(set(re.findall(r"via (\S+)", logs)))
 print("NCCL transports observed:", transport or "none captured (set NCCL_DEBUG=INFO and NCCL_DEBUG_FILE)")

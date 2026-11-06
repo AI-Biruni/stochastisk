@@ -1,0 +1,209 @@
+{
+ "timestamp": "2026-11-06T23:00:46+0500",
+ "kind": "local (unit tests on synthetic snapshots + dry-run on a NON-Kaggle machine)",
+ "source_revision": {
+  "vllm_tag": "v0.25.1",
+  "vllm_commit": "752a3a504485790a2e8491cacbb35c137339ad34",
+  "stokastisk_git": "59f26c5"
+ },
+ "tool_versions": {
+  "python": "3.13.15"
+ },
+ "input_hashes": {
+  "stage.zip": "7ea5e7a70f7dee7bec77755ff8457f3cef05baf9566179a27170aa506d7a4798",
+  "stokastisk-0.3.0-py3-none-any.whl": "3bc430f85ed18e1a9c93c9b3d49facebb8b4a0986c0026b370d19e2cc84b3e29",
+  "vllm-0.25.1-cp38-abi3-linux_x86_64.whl": "866c4c5e4ca4749234e92cd1edc0a2003eb8c6bd10be2cefe51ca2b2c6cf8a98"
+ },
+ "commands": [
+  "python3.13 tests/test_installer.py",
+  "02_install.py <bundle> --dry-run"
+ ],
+ "failures": [],
+ "warnings": [],
+ "unit_tests": {
+  "returncode": 0,
+  "ran": 16,
+  "tail": [
+   "Ran 16 tests in 0.032s",
+   "",
+   "OK"
+  ]
+ },
+ "dry_run_returncode": 1,
+ "dry_run_status": "FAIL",
+ "dry_run_checks": [
+  {
+   "check": "SHA256SUMS verified before any install",
+   "status": "PASS",
+   "detail": "all files match"
+  },
+  {
+   "check": "python 3.13",
+   "status": "PASS",
+   "detail": "3.13.15"
+  },
+  {
+   "check": "baseline: transformers not installed",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "baseline protected (torch/triton exact, transformers>=5.5.3, no prohibited pkgs)",
+   "status": "FAIL",
+   "detail": "{'torch': '2.11.0+cu130', 'triton': '3.6.0', 'transformers': None, 'numpy': '2.5.4', 'nvidia-cuda-nvcc': None, 'nvidia-nvvm': None}"
+  },
+  {
+   "check": "two Tesla T4 (SM75) [dry-run: not enforced]",
+   "status": "PASS",
+   "detail": "1 gpu(s) [(5, 0)]"
+  },
+  {
+   "check": "exactly two wheels",
+   "status": "PASS",
+   "detail": "['stokastisk-0.3.0-py3-none-any.whl', 'vllm-0.25.1-cp38-abi3-linux_x86_64.whl']"
+  },
+  {
+   "check": "wheels contain no FlashAttention/FlashInfer/FlashMLA files",
+   "status": "PASS",
+   "detail": "none"
+  },
+  {
+   "check": "plan: requirement regex is not installed and not in the core pin list",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "plan: requirement cachetools is not installed and not in the core pin list",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "plan: requirement sentencepiece is not installed and not in the core pin list",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "plan: requirement py-cpuinfo is not installed and not in the core pin list",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "plan: requirement transformers>=5.5.3 is not installed and not in the core pin list",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "plan: requirement tokenizers>=0.21.1 is not installed and not in the core pin list",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "plan: requirement safetensors>=0.6.2 is not installed and not in the core pin list",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "plan: requirement fastapi>=0.133.0 is not installed and not in the core pin list",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "plan: requirement starlette>=1.0.1 is not installed and not in the core pin list",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "plan: requirement aiohttp>=3.13.3 is not installed and not in the core pin list",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "plan: requirement openai>=2.0.0 is not installed and not in the core pin list",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "plan: requirement pydantic>=2.12.0 is not installed and not in the core pin list",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "plan: requirement pillow is not installed and not in the core pin list",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "plan: requirement tiktoken>=0.6.0 is not installed and not in the core pin list",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "plan: requirement einops is not installed and not in the core pin list",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "plan: requirement cloudpickle is not installed and not in the core pin list",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "plan: requirement opentelemetry-sdk>=1.27.0 is not installed and not in the core pin list",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "plan: requirement opentelemetry-api>=1.27.0 is not installed and not in the core pin list",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "plan: requirement uvloop is not installed and not in the core pin list",
+   "status": "FAIL",
+   "detail": ""
+  },
+  {
+   "check": "dependency plan has no conflicts (nothing is installed if this fails)",
+   "status": "FAIL",
+   "detail": "{'install': {'apache-tvm-ffi': '0.1.9', 'xgrammar': '0.2.5.post1', 'llguidance': '1.7.6', 'cbor2': '6.2.0.post2', 'msgspec': '0.22.0', 'openai-harmony': '0.0.8', 'partial-json-parser': '0.2.1.1.post7', 'pybase64': '1.5.1'}}"
+  }
+ ],
+ "dry_run_plan": {
+  "install": {
+   "apache-tvm-ffi": "0.1.9",
+   "xgrammar": "0.2.5.post1",
+   "llguidance": "1.7.6",
+   "cbor2": "6.2.0.post2",
+   "msgspec": "0.22.0",
+   "openai-harmony": "0.0.8",
+   "partial-json-parser": "0.2.1.1.post7",
+   "pybase64": "1.5.1"
+  },
+  "satisfied": [],
+  "compatible_kept": [],
+  "conflicts": [
+   "requirement regex is not installed and not in the core pin list",
+   "requirement cachetools is not installed and not in the core pin list",
+   "requirement sentencepiece is not installed and not in the core pin list",
+   "requirement py-cpuinfo is not installed and not in the core pin list",
+   "requirement transformers>=5.5.3 is not installed and not in the core pin list",
+   "requirement tokenizers>=0.21.1 is not installed and not in the core pin list",
+   "requirement safetensors>=0.6.2 is not installed and not in the core pin list",
+   "requirement fastapi>=0.133.0 is not installed and not in the core pin list",
+   "requirement starlette>=1.0.1 is not installed and not in the core pin list",
+   "requirement aiohttp>=3.13.3 is not installed and not in the core pin list",
+   "requirement openai>=2.0.0 is not installed and not in the core pin list",
+   "requirement pydantic>=2.12.0 is not installed and not in the core pin list",
+   "requirement pillow is not installed and not in the core pin list",
+   "requirement tiktoken>=0.6.0 is not installed and not in the core pin list",
+   "requirement einops is not installed and not in the core pin list",
+   "requirement cloudpickle is not installed and not in the core pin list",
+   "requirement opentelemetry-sdk>=1.27.0 is not installed and not in the core pin list",
+   "requirement opentelemetry-api>=1.27.0 is not installed and not in the core pin list",
+   "requirement uvloop is not installed and not in the core pin list"
+  ]
+ },
+ "dry_run_downloaded_bytes": null,
+ "dry_run_seconds": 3.150225877761841,
+ "interpretation": "On this development machine the baseline gate is expected to refuse (no Kaggle torch/transformers 5.x); that refusal-before-any-change IS the tested behaviour. The Kaggle outcome is PENDING USER."
+}

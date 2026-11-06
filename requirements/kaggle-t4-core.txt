@@ -1,0 +1,13 @@
+# Stokastisk T4 core: packages ABSENT from the Kaggle baseline that the vLLM 0.25.1 core import path
+# (vllm.LLM, Triton attention backend, Qwen2 loader, TP=1/2) imports. Installed with `pip install --no-deps`
+# at these exact versions (the versions pip resolved on Kaggle in the executed Notebook 02 run).
+# Everything else the core imports (numpy, transformers>=5.5.3, tokenizers, fastapi, pydantic, ...) is already on Kaggle
+# and is NEVER touched. Evidence: evidence-rc/dependency-audit.json
+apache-tvm-ffi==0.1.9            # imported by xgrammar
+xgrammar==0.2.5.post1            # imported at module level by vllm.tool_parsers / reasoning (needed to import vllm.LLM)
+llguidance==1.7.6                # structured-output backend, imported on the engine import path
+cbor2==6.2.0.post2               # vllm/utils/hashing.py
+msgspec==0.22.0                  # vllm.v1 serialization (18 modules)
+openai-harmony==0.0.8            # vllm/entrypoints/chat_utils.py
+partial-json-parser==0.2.1.1.post7  # tool parsers imported by vllm.entrypoints
+pybase64==1.5.1                  # 17 modules

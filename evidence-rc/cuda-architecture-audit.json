@@ -1,0 +1,36 @@
+{
+ "timestamp": "2026-11-06T22:55:05+0500",
+ "kind": "static",
+ "tool_versions": {
+  "python": "3.13.15",
+  "nvcc": "Cuda compilation tools, release 13.0, V13.0.48",
+  "readelf": "GNU readelf (GNU Binutils for Ubuntu) 2.42",
+  "cuobjdump": "Build cuda_13.0.r13.0/compiler.36195134_0"
+ },
+ "commands": [
+  "cuobjdump --list-elf",
+  "cuobjdump --list-ptx"
+ ],
+ "source": {
+  "tag": "v0.25.1",
+  "commit": "752a3a504485790a2e8491cacbb35c137339ad34"
+ },
+ "target": [
+  "sm_75"
+ ],
+ "per_file": {
+  "vllm/_C_stable_libtorch.abi3.so": [
+   "sm_75"
+  ],
+  "vllm/_moe_C_stable_libtorch.abi3.so": [
+   "sm_75"
+  ],
+  "vllm/_rust_tool_parser.abi3.so": [],
+  "vllm/cumem_allocator.abi3.so": [],
+  "vllm/fs_io_C.abi3.so": [],
+  "vllm/spinloop.abi3.so": []
+ },
+ "non_target_architectures": {},
+ "ptx_present": {},
+ "note": "static cubin inspection only; execution on a T4 is PENDING USER (Kaggle notebook 03)"
+}
