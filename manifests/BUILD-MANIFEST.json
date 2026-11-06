@@ -1,0 +1,37 @@
+{
+ "source": {
+  "tag": "v0.25.1",
+  "commit": "752a3a504485790a2e8491cacbb35c137339ad34",
+  "tarball_sha256": "6e41ae186a0623cdf19ce900f47e1be21bec1b7b31646803ac299bda0552e5a0",
+  "commit_verified_via": "tarball pax header + GitHub tag API"
+ },
+ "patches": [],
+ "derivation": "FlashAttention .so removed by repack_vllm_wheel.py",
+ "original_wheel": {
+  "name": "vllm-0.25.1-cp38-abi3-linux_x86_64.whl",
+  "size": 285141763,
+  "sha256": "158f3f628e20d296f2701001dc5fbf5eb54bc49778f54af0735e9808d0376eb7"
+ },
+ "toolchain": {
+  "python": "3.13.15",
+  "torch": "2.11.0+cu130",
+  "nvcc": "13.0.48",
+  "gcc": "13.3.0",
+  "cmake": "4.4.4",
+  "ninja": "1.13.2",
+  "kaggle_nvcc": "13.0.88"
+ },
+ "env": {
+  "TORCH_CUDA_ARCH_LIST": "7.5",
+  "CMAKE_CUDA_ARCHITECTURES": "75",
+  "MAX_JOBS": "1",
+  "VLLM_TARGET_DEVICE": "cuda"
+ },
+ "command": "setup.py bdist_wheel --py-limited-api=cp38",
+ "log_sha256": "9ad590dabf89eb83ba157b7548bd9ddb584fe51f8946f86c290b7faa2afc3a3d",
+ "build_finished_mtime": "2026-11-05 19:27:04",
+ "build_exit_code": "not recorded in log; wheel assembled",
+ "known_failures": [
+  "vllm-server (Rust frontend): protoc not found"
+ ]
+}

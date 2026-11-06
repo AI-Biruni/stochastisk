@@ -1,0 +1,593 @@
+{
+ "vllm_requires_dist": [
+  {
+   "requirement": "regex",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "cachetools",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "psutil",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "sentencepiece",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "numpy",
+   "action": "keep Kaggle's version (never reinstalled; pinned by constraint)",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "requests>=2.26.0",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "tqdm",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "blake3",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "py-cpuinfo",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "transformers>=5.5.3",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "tokenizers>=0.21.1",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "safetensors>=0.6.2",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "protobuf!=6.30.*,!=6.31.*,!=6.32.*,!=6.33.0.*,!=6.33.1.*,!=6.33.2.*,!=6.33.3.*,!=6.33.4.*,>=5.29.6",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "fastapi[standard]<0.137.0,>=0.133.0",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "starlette>=1.0.1",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "aiohttp>=3.13.3",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "openai>=2.0.0",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "pydantic>=2.12.0",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "prometheus_client>=0.18.0",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "pillow",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "prometheus-fastapi-instrumentator>=8.0.0",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "tiktoken>=0.6.0",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "lm-format-enforcer==0.11.3",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "llguidance<1.8.0,>=1.7.0; platform_machine == \"x86_64\" or platform_machine == \"arm64\" or platform_machine == \"aarch64\" or platform_machine == \"ppc64le\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "outlines_core==0.2.14",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "diskcache==5.6.3",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "lark==1.2.2",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "xgrammar<1.0.0,>=0.2.1; platform_machine == \"x86_64\" or platform_machine == \"aarch64\" or platform_machine == \"arm64\" or platform_machine == \"s390x\" or platform_machine == \"ppc64le\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "typing_extensions>=4.10",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "filelock>=3.16.1",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "partial-json-parser",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "jsonschema>=4.23.0",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "pyzmq>=25.0.0",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "msgspec",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "mistral_common[image]>=1.11.5",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "opencv-python-headless>=4.13.0",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "pyyaml",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "six>=1.16.0; python_version > \"3.11\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "setuptools<81.0.0,>=77.0.3; python_version > \"3.11\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "einops",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "compressed-tensors==0.17.0",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "depyf==0.20.0",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "cloudpickle",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "watchfiles",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "python-json-logger",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "ninja",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "pybase64",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "cbor2",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "ijson",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "setproctitle",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "openai-harmony>=0.0.3",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "anthropic>=0.71.0",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "model-hosting-container-standards<1.0.0,>=0.1.14",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "mcp",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "opentelemetry-sdk>=1.27.0",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "opentelemetry-api>=1.27.0",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "opentelemetry-exporter-otlp>=1.27.0",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "opentelemetry-semantic-conventions-ai>=0.4.1",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "numba==0.65.0",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "torch==2.11.0",
+   "action": "keep Kaggle's version (never reinstalled; pinned by constraint)",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "torchaudio==2.11.0",
+   "action": "keep Kaggle's version (never reinstalled; pinned by constraint)",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "torchvision==0.26.0",
+   "action": "keep Kaggle's version (never reinstalled; pinned by constraint)",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "torchcodec>=0.14",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "PyNvVideoCodec==2.0.4",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "flashinfer-python==0.6.13",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "flashinfer-cubin==0.6.13",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "apache-tvm-ffi==0.1.9",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "tilelang==0.1.9",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "nvidia-cudnn-frontend>=1.19.1",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "nvtx==0.2.15",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "fastsafetensors>=0.3.2",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "nvidia-cutlass-dsl[cu13]==4.5.2",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "quack-kernels>=0.3.3",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "tokenspeed-mla==0.1.2; platform_system == \"Linux\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "humming-kernels[cu13]==0.1.10",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "zentorch==2.11.0.0; extra == \"zen\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "pandas; extra == \"bench\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "matplotlib; extra == \"bench\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "seaborn; extra == \"bench\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "datasets; extra == \"bench\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "scipy; extra == \"bench\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "plotly; extra == \"bench\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "tensorizer==2.10.1; extra == \"tensorizer\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "fastsafetensors>=0.3.2; extra == \"fastsafetensors\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "instanttensor>=0.1.5; extra == \"instanttensor\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "runai-model-streamer[azure,gcs,s3]>=0.15.7; extra == \"runai\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "av; extra == \"audio\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "scipy; extra == \"audio\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "soundfile; extra == \"audio\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "soxr; extra == \"audio\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "mistral_common[audio]; extra == \"audio\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "helion==1.1.0; extra == \"helion\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "smg-grpc-servicer[vllm]>=0.5.2; extra == \"grpc\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "opentelemetry-sdk>=1.26.0; extra == \"otel\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "opentelemetry-api>=1.26.0; extra == \"otel\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "opentelemetry-exporter-otlp>=1.26.0; extra == \"otel\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "opentelemetry-semantic-conventions-ai>=0.4.1; extra == \"otel\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  },
+  {
+   "requirement": "vllm-gguf-plugin>=0.0.2; extra == \"extra-quant\"",
+   "action": "02_install.py installs only if missing/unsatisfied",
+   "kaggle_supplies": "unknown (Kaggle package list not available to this build)",
+   "bundled": false
+  }
+ ],
+ "note": "Kaggle audit supplied only torch 2.11.0+cu130, triton 3.6.0, numpy 2.1.3, NCCL 2.28.9; others unverified"
+}

@@ -1,0 +1,36 @@
+
+# Credentials and secrets
+tokens.env
+.env
+.env.*
+!.env.example
+*.token
+*.secret
+
+# Python generated files
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+
+# Native build output
+*.o
+*.a
+*.so
+*.cubin
+*.fatbin
+*.ptx
+
+# Local temporary files
+work/
+reports/
+
+# Not for the source repository
+stage.zip
+project-stochastisk-files.txt
+assets/
+logs/
+legacy/
+patches/*.orig

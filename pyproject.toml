@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stokastisk"
+version = "0.3.0"
+description = "Python SDK around vLLM 0.25.1 for dual Tesla T4 (SM75, CUDA 13.0) using the built-in Triton attention backend"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+dependencies = ["vllm==0.25.1"]
+
+[tool.setuptools]
+package-dir = {"" = "sdk"}
+packages = ["stokastisk"]
