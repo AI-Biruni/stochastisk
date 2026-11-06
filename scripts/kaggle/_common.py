@@ -1,6 +1,8 @@
 """Shared helpers for the Stokastisk Kaggle acceptance scripts."""
 import hashlib, importlib, json, os, pathlib, subprocess, sys, time, traceback
 
+# Statuses: PASS FAIL ERROR SKIPPED WARNING NOT_RUN. Only these never fail a stage; FAIL/ERROR/NOT_RUN do.
+OK_STATUSES = ("PASS", "WARNING", "SKIPPED")
 OUT = pathlib.Path(os.environ.get("STOKASTISK_OUT", "/kaggle/working/stokastisk-acceptance"))
 OUT.mkdir(parents=True, exist_ok=True)
 
@@ -23,8 +25,8 @@ def check(results, name, ok, detail=""):
 
 
 def finish(stage, results, extra=None):
-    # WARN = a documented limitation (e.g. cuobjdump absent); it never hides a FAIL and never counts as a verified PASS.
-    status = "PASS" if results and all(r["status"] in ("PASS", "WARN") for r in results) else "FAIL"
+    # WARNING/SKIPPED = a documented limitation (e.g. cuobjdump absent); it never hides a FAIL and never counts as a verified PASS.
+    status = "PASS" if results and all(r["status"] in OK_STATUSES for r in results) else "FAIL"
     save(f"{stage}.json", {"stage": stage, "status": status, "checks": results, **(extra or {})})
     print(f"\n[{stage}] OVERALL: {status}")
     if status != "PASS":
@@ -32,8 +34,13 @@ def finish(stage, results, extra=None):
 
 
 def warn(results, name, detail=""):
-    results.append({"check": name, "status": "WARN", "detail": str(detail)})
-    print(f"WARN {name} -- {detail}")
+    results.append({"check": name, "status": "WARNING", "detail": str(detail)})
+    print(f"WARNING {name} -- {detail}")
+
+
+def skipped(results, name, detail=""):
+    results.append({"check": name, "status": "SKIPPED", "detail": str(detail)})
+    print(f"SKIPPED {name} -- {detail}")
 
 
 def sha256(path):

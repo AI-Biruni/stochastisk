@@ -1,0 +1,12 @@
+{
+  "rank": 0,
+  "local_rank": 0,
+  "world": 2,
+  "device": "Tesla T4",
+  "nccl": "2.28.9",
+  "all_reduce_ok": true,
+  "all_gather_ok": true,
+  "reduce_scatter_ok": true,
+  "cleanup": "process group destroyed",
+  "ok": true
+}
