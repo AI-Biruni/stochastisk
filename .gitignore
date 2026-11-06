@@ -38,3 +38,6 @@ patches/*.orig
 dist-rc/
 evidence-rc/inventory-*.tsv
 evidence-rc/preserved-hashes-*.txt
+
+# local Kaggle execution outputs (never publish)
+notebooks-executed-with-output/
