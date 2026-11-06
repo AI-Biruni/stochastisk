@@ -27,50 +27,73 @@ expected = {l.split(None, 1)[1].strip(): l.split()[0] for l in (BUNDLE / "manife
 for rel in [f"scripts/kaggle/{s.name}" for s in SCRIPTS.glob("*.py")] + [f"wheels/{w.name}" for w in (BUNDLE / "wheels").glob("*.whl")]:
     assert expected.get(rel) == sha(BUNDLE / rel), f"{rel} does not match manifests/SHA256SUMS (stale or modified file)"
 print("all executed scripts and wheels match manifests/SHA256SUMS")'''
+
+# Every notebook >= 03 must ALSO prove the installed SDK is byte-identical to the bundle's wheel (the rc1/rc2 stale-wheel
+# defect: the wheel's stokastisk/nccl.py was older than the source, so notebook 04 judged fields the SDK never wrote).
+VERIFY = '''import importlib, importlib.metadata as md, zipfile, hashlib
+for w in sorted((BUNDLE / "wheels").glob("*.whl")):
+    pkg = w.name.split("-")[0]
+    mod = importlib.import_module(pkg)
+    root = pathlib.Path(mod.__file__).resolve().parent
+    z = zipfile.ZipFile(w); bad = []
+    for n in z.namelist():
+        if n.startswith(pkg + "/") and n.endswith((".py", ".so")):
+            f = root.parent / n
+            if not f.is_file() or hashlib.sha256(f.read_bytes()).hexdigest() != hashlib.sha256(z.read(n)).hexdigest(): bad.append(n)
+    print(f"{pkg} {md.version(pkg)} imported from {root}: {'identical to ' + w.name if not bad else 'MISMATCH ' + str(bad)}")
+    assert not bad, f"installed {pkg} differs from the bundle wheel {w.name}; uninstall it and re-run the install cell"'''
+ZIP = '''import shutil
+print(shutil.make_archive("/kaggle/working/{nn}-stokastisk-acceptance", "zip", "/kaggle/working", "stokastisk-acceptance"))'''
 def md(t): return {"cell_type": "markdown", "metadata": {}, "source": t.strip().splitlines(True)}
 def code(t): return {"cell_type": "code", "metadata": {}, "execution_count": None, "outputs": [], "source": t.strip().splitlines(True)}
 HEAD = "**EXPERIMENTAL — KAGGLE DUAL-T4 VALIDATION PENDING.** Not executed by the author; outputs are produced only when *you* run it.\n\nAccelerator: **GPU T4 x2**, Internet **ON** (notebooks 02–06 download the 8 pinned helper wheels, ~57 MB, and 05/06 download the model). Run notebooks in order 01 → 06 (each Kaggle notebook is a fresh session, so notebooks 03–06 re-run the idempotent installer first); each stage writes JSON to `/kaggle/working/stokastisk-acceptance/`."
+BODY01 = 'Prereq: release dataset attached. Success: every check prints PASS (Python 3.13, torch 2.11.0+cu130, Triton 3.6, glibc>=2.38, 2x Tesla T4 SM75). Peer access/topology are recorded, not assumed.'
+BODY02 = 'Verifies SHA256SUMS **before** installing; plans from a before-snapshot and aborts untouched on any conflict; installs both wheels `--no-deps`, then only the 8 exact pins in `requirements/kaggle-t4-core.txt` (also `--no-deps`; **no resolver ever runs**). Success: all PASS, every preinstalled package unchanged (torch, Triton, Transformers 5.x, CUDA 13.0 packages), no FlashAttention/FlashInfer, imports + `TRITON_ATTN` class resolve. Re-running changes nothing. Use `--dry-run` to see the plan only.'
+BODY03 = "On each GPU: PyTorch fp32/fp16 matmul vs CPU (PyTorch, *not* vLLM code), a hand-written Triton kernel (Triton JIT, *not* vLLM's attention), and two real vLLM native SM75 kernels (`rms_norm`, `silu_and_mul`). Also inspects every installed vLLM `.so` (no CUDA 12 NEEDED, cubins exactly sm_75). vLLM's Triton attention kernel is only exercised in notebook 05."
+BODY04 = 'Real `torchrun` 2-rank all-reduce / all-gather / reduce-scatter with process-group teardown. NCCL_DEBUG logs are saved so the actual transport (SHM vs sockets) can be read; nothing here assumes P2P.'
+BODY05 = "Loads `Qwen/Qwen2.5-0.5B-Instruct` (public, ~1 GB fp16) from Hugging Face, runs short-decode and ~1.2k-token prefill generations at TP=1 and TP=2, checks determinism, and **greps vLLM's own log** for the selected backend. Set `HF_TOKEN` as a Kaggle secret only for gated models."
+BODY06 = 'Same model, prompts and sampling for both runs (one process per TP). Reports measured decode tokens/s, prefill tokens/s, latency and GPU memory, and re-checks the `TRITON_ATTN` engine config; **no speed-up is assumed** (the T4s have no P2P). Ends with the overall acceptance verdict.'
+L05_RUN = 'import subprocess, sys, os\nenv = dict(os.environ, PYTHONPATH=str(SCRIPTS) + ":" + os.environ.get("PYTHONPATH", ""), VLLM_LOGGING_LEVEL="INFO")\nfor tp in (1, 2):\n    with open(f"/kaggle/working/stokastisk-acceptance/vllm_tp{tp}.log", "w") as f:\n        rc = subprocess.run([sys.executable, str(SCRIPTS / "05_inference.py"), str(tp), "Qwen/Qwen2.5-0.5B-Instruct"],\n                            env=env, stdout=f, stderr=subprocess.STDOUT).returncode\n    print("TP", tp, "rc", rc)'
+L05_CHK = 'import re, json\nOUT = "/kaggle/working/stokastisk-acceptance"\nev = {}\nfor tp in (1, 2):\n    log = open(f"{OUT}/vllm_tp{tp}.log", errors="replace").read()\n    chosen = re.findall(r"Using (?:AttentionBackendEnum\\.)?TRITON_ATTN backend", log)\n    other = re.findall(r"(?i)using[^\\n]*(?:FLASH_?ATTN|FLASHINFER|FLASHMLA|FLEX_ATTENTION|XFORMERS)[^\\n]*backend", log)\n    ev[tp] = {"triton_lines": len(chosen), "other_backend_lines": other[:3], "log_bytes": len(log)}\n    print(f"TP{tp}: {ev[tp]}")\n    assert len(chosen) >= tp, f"expected >= {tp} \'Using ...TRITON_ATTN backend\' log line(s) (one per worker); inspect {OUT}/vllm_tp{tp}.log"\n    assert not other, "a non-Triton attention backend was reported"\n    assert "Selected backend" not in log or "is not valid" not in log, "vLLM rejected the selected backend"\njson.dump(ev, open(f"{OUT}/05_backend_log_evidence.json", "w"), indent=1)'
+L06_RUN = 'import subprocess, sys, os\nenv = dict(os.environ, PYTHONPATH=str(SCRIPTS) + ":" + os.environ.get("PYTHONPATH", ""))\nfor tp in (1, 2):\n    rc = subprocess.run([sys.executable, str(SCRIPTS / "06_tp_benchmark.py"), str(tp), "Qwen/Qwen2.5-1.5B-Instruct"], env=env).returncode\n    print("TP", tp, "rc", rc)'
+
+RUNPY = '''import subprocess, sys, os
+def run_stage(script, *args):
+    """Run a bundled stage script; returns its exit code (a failure is asserted in the final verdict cell, after evidence is packaged)."""
+    r = subprocess.run([sys.executable, str(SCRIPTS / script), *args], cwd=SCRIPTS,
+                       env=dict(os.environ, PYTHONPATH=str(SCRIPTS) + ":" + os.environ.get("PYTHONPATH", "")))
+    print(f"{script} exit code: {r.returncode}")
+    return r.returncode'''
+def sec(t): return md(t)
+def setup(install=True):
+    c = [sec("## 1. Setup — locate the release bundle"), code(FIND)]
+    if install:
+        c += [sec("## 2. Install into this fresh Kaggle session (idempotent, `--no-deps`, SHA256-verified, protected packages untouched)\n\nKaggle gives every notebook a new session: what notebook 02 installed does not exist here. Internet must be ON."), code(INSTALL),
+              sec("## 3. Provenance — every executed script and wheel must match `manifests/SHA256SUMS`"), code(PROVENANCE),
+              sec("## 4. The installed packages must be byte-identical to the bundle's wheels"), code(VERIFY)]
+    return c
+def verdict(rcs): return [sec("## Verdict — this cell fails the notebook if any stage failed"), code(f"rcs = {rcs}\nassert all(v == 0 for v in rcs.values()), f'FAILED stage(s): {{rcs}} -- see the logs and JSON in /kaggle/working/stokastisk-acceptance/'\nprint('ALL STAGES PASSED', rcs)")]
+def pack(nn): return [sec("## Package the evidence\n\nCreates `/kaggle/working/%s-stokastisk-acceptance.zip` (download it from the Output tab)." % nn), code(ZIP.replace("{nn}", nn))]
 NB = {
- "01_stokastisk_environment_audit": ("Environment audit", "Prereq: release dataset attached. Success: every check prints PASS (Python 3.13, torch 2.11.0+cu130, Triton 3.6, glibc>=2.38, 2x Tesla T4 SM75). Peer access/topology are recorded, not assumed.",
-   [code(FIND), code('!cd {SCRIPTS} && python 01_env_audit.py')]),
- "02_stokastisk_installation": ("Verified installation", "Verifies SHA256SUMS **before** installing; plans from a before-snapshot and aborts untouched on any conflict; installs both wheels `--no-deps`, then only the 8 exact pins in `requirements/kaggle-t4-core.txt` (also `--no-deps`; **no resolver ever runs**). Success: all PASS, every preinstalled package unchanged (torch, Triton, Transformers 5.x, CUDA 13.0 packages), no FlashAttention/FlashInfer, imports + `TRITON_ATTN` class resolve. Re-running changes nothing. Use `--dry-run` to see the plan only.",
-   [code(FIND), code('!python {SCRIPTS}/02_install.py {BUNDLE} --dry-run'), code('!python {SCRIPTS}/02_install.py {BUNDLE}')]),
- "03_stokastisk_single_gpu_validation": ("Single-GPU SM75 validation (each T4 individually)", "On each GPU: PyTorch fp32/fp16 matmul vs CPU (PyTorch, *not* vLLM code), a hand-written Triton kernel (Triton JIT, *not* vLLM's attention), and two real vLLM native SM75 kernels (`rms_norm`, `silu_and_mul`). Also inspects every installed vLLM `.so` (no CUDA 12 NEEDED, cubins exactly sm_75). vLLM's Triton attention kernel is only exercised in notebook 05.",
-   [code(FIND), code(INSTALL), code(PROVENANCE), code('!cd {SCRIPTS} && python 03_single_gpu.py')]),
- "04_stokastisk_dual_gpu_nccl_validation": ("Dual-GPU NCCL validation", "Real `torchrun` 2-rank all-reduce / all-gather / reduce-scatter with process-group teardown. NCCL_DEBUG logs are saved so the actual transport (SHM vs sockets) can be read; nothing here assumes P2P.",
-   [code(FIND), code(INSTALL), code(PROVENANCE), code('''import os
-os.makedirs(os.environ["STOKASTISK_OUT"], exist_ok=True)   # NCCL_DEBUG_FILE / torchrun need the directory to exist first
-env = dict(os.environ, NCCL_DEBUG="INFO", NCCL_DEBUG_FILE="/kaggle/working/stokastisk-acceptance/nccl.%h.%p.log",
-           PYTHONPATH=str(SCRIPTS) + ":" + os.environ.get("PYTHONPATH", ""))
-import subprocess
-r = subprocess.run(["torchrun", "--standalone", "--nproc-per-node=2", str(SCRIPTS / "04_nccl_dual_gpu.py")], env=env)
-print("torchrun rc", r.returncode)'''), code('!cd {SCRIPTS} && python 04_nccl_summary.py')]),
- "05_stokastisk_vllm_inference": ("Real vLLM inference with TRITON_ATTN", "Loads `Qwen/Qwen2.5-0.5B-Instruct` (public, ~1 GB fp16) from Hugging Face, runs short-decode and ~1.2k-token prefill generations at TP=1 and TP=2, checks determinism, and **greps vLLM's own log** for the selected backend. Set `HF_TOKEN` as a Kaggle secret only for gated models.",
-   [code(FIND), code(INSTALL), code(PROVENANCE), code('''import subprocess, sys, os
-env = dict(os.environ, PYTHONPATH=str(SCRIPTS) + ":" + os.environ.get("PYTHONPATH", ""), VLLM_LOGGING_LEVEL="INFO")
-for tp in (1, 2):
-    with open(f"/kaggle/working/stokastisk-acceptance/vllm_tp{tp}.log", "w") as f:
-        rc = subprocess.run([sys.executable, str(SCRIPTS / "05_inference.py"), str(tp), "Qwen/Qwen2.5-0.5B-Instruct"],
-                            env=env, stdout=f, stderr=subprocess.STDOUT).returncode
-    print("TP", tp, "rc", rc)'''), code(r'''import re, json
-OUT = "/kaggle/working/stokastisk-acceptance"
-ev = {}
-for tp in (1, 2):
-    log = open(f"{OUT}/vllm_tp{tp}.log", errors="replace").read()
-    chosen = re.findall(r"Using (?:AttentionBackendEnum\.)?TRITON_ATTN backend", log)
-    other = re.findall(r"(?i)using[^\n]*(?:FLASH_?ATTN|FLASHINFER|FLASHMLA|FLEX_ATTENTION|XFORMERS)[^\n]*backend", log)
-    ev[tp] = {"triton_lines": len(chosen), "other_backend_lines": other[:3], "log_bytes": len(log)}
-    print(f"TP{tp}: {ev[tp]}")
-    assert len(chosen) >= tp, f"expected >= {tp} 'Using ...TRITON_ATTN backend' log line(s) (one per worker); inspect {OUT}/vllm_tp{tp}.log"
-    assert not other, "a non-Triton attention backend was reported"
-    assert "Selected backend" not in log or "is not valid" not in log, "vLLM rejected the selected backend"
-json.dump(ev, open(f"{OUT}/05_backend_log_evidence.json", "w"), indent=1)'''), code('''print(open("/kaggle/working/stokastisk-acceptance/05_inference_tp1.json").read()[:1500])''')]),
- "06_stokastisk_tensor_parallel_benchmark": ("TP=1 vs TP=2 benchmark and acceptance verdict", "Same model, prompts and sampling for both runs (one process per TP). Reports measured decode tokens/s, prefill tokens/s, latency and GPU memory, and re-checks the `TRITON_ATTN` engine config; **no speed-up is assumed** (the T4s have no P2P). Ends with the overall acceptance verdict.",
-   [code(FIND), code(INSTALL), code(PROVENANCE), code('''import subprocess, sys, os
-env = dict(os.environ, PYTHONPATH=str(SCRIPTS) + ":" + os.environ.get("PYTHONPATH", ""))
-for tp in (1, 2):
-    rc = subprocess.run([sys.executable, str(SCRIPTS / "06_tp_benchmark.py"), str(tp), "Qwen/Qwen2.5-1.5B-Instruct"], env=env).returncode
-    print("TP", tp, "rc", rc)'''), code('!cd {SCRIPTS} && python 07_summary.py')]),
+ "01_stokastisk_environment_audit": ("Environment audit", BODY01,
+   setup(False) + [sec("## 2. Run the audit (read-only: installs and changes nothing)"), code(RUNPY), code('RC = {"01_env_audit": run_stage("01_env_audit.py")}')] + pack("01") + verdict('RC')),
+ "02_stokastisk_installation": ("Verified installation", BODY02,
+   setup(False) + [sec("## 2. Dry run (plan only; nothing is installed). **The installation cell below is blocked unless this passes.**"),
+    code('import subprocess, sys\nr = subprocess.run([sys.executable, str(SCRIPTS / "02_install.py"), str(BUNDLE), "--dry-run"])\nassert r.returncode == 0, "dry run failed: do NOT install; read the output above"\nprint("dry run OK")'),
+    sec("## 3. Install"), code('r = subprocess.run([sys.executable, str(SCRIPTS / "02_install.py"), str(BUNDLE)])\nRC = {"02_install": r.returncode}\nprint(RC)'),
+    sec("## 4. The installed packages must be byte-identical to the bundle's wheels"), code(VERIFY)] + pack("02") + verdict('RC')),
+ "03_stokastisk_single_gpu_validation": ("Single-GPU SM75 validation (each T4 individually)", BODY03,
+   setup() + [sec("## 5. Run the single-GPU validation (every stage isolated; full tracebacks are saved)"), code(RUNPY), code('RC = {"03_single_gpu": run_stage("03_single_gpu.py")}')] + pack("03") + verdict('RC')),
+ "04_stokastisk_dual_gpu_nccl_validation": ("Dual-GPU NCCL validation", BODY04,
+   setup() + [sec("## 5. Launch two processes, one per T4 (finite timeouts; NCCL's default transport selection is NOT altered)"), code(RUNPY),
+    code('RC = {"04_nccl_launch": run_stage("04_nccl_launch.py")}'),
+    sec("## 6. Judge the result: launcher exit code, both ranks' collective results, teardown, NCCL log evidence"), code('RC["04_nccl_summary"] = run_stage("04_nccl_summary.py")')] + pack("04") + verdict('RC')),
+ "05_stokastisk_vllm_inference": ("Real vLLM inference with TRITON_ATTN", BODY05,
+   setup() + [sec("## 5. Run Qwen2.5-0.5B-Instruct at TP=1 and TP=2"), code(L05_RUN),
+    sec("## 6. Prove from vLLM's own logs that `TRITON_ATTN` was selected"), code(L05_CHK),
+    code('print(open("/kaggle/working/stokastisk-acceptance/05_inference_tp1.json").read()[:1500])')] + pack("05")),
+ "06_stokastisk_tensor_parallel_benchmark": ("TP=1 vs TP=2 benchmark and acceptance verdict", BODY06,
+   setup() + [sec("## 5. Benchmark Qwen2.5-1.5B-Instruct at TP=1 and TP=2"), code(L06_RUN), sec("## 6. Measured comparison and the overall verdict"), code(RUNPY), code('RC = {"07_summary": run_stage("07_summary.py")}')] + pack("06")),
 }
 for name, (title, body, cells) in NB.items():
     nb = {"nbformat": 4, "nbformat_minor": 5, "metadata": {"kernelspec": {"name": "python3", "display_name": "Python 3", "language": "python"},
