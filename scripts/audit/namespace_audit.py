@@ -11,9 +11,12 @@ res = {"stage_zip": {"path": str(stage), "sha256": sha(stage.read_bytes())}}
 
 z = zipfile.ZipFile(stage); names = z.namelist()
 top = sorted({n.split("/")[1] for n in names if n.count("/") >= 1 and n.split("/")[1]})
-vel = [n for n in names if n.startswith("stage/velocita/")]
+# the leftover facade was named stage/velocita/ in the original archive and stage/stochastisk/ (sic, 'ch') after the archive was edited on 2026-11-07
+LEFT = next((d for d in ("velocita", "stochastisk") if any(n.startswith(f"stage/{d}/") for n in names)), None)
+vel = [n for n in names if LEFT and n.startswith(f"stage/{LEFT}/")]
 res["stage_zip"].update(top_level_under_stage=top, velocita_files=vel, vllm_file_count=sum(n.startswith("stage/vllm/") for n in names))
-src = z.read("stage/velocita/__init__.py").decode()
+res["stage_zip"]["leftover_facade_dir"] = LEFT
+src = z.read(f"stage/{LEFT}/__init__.py").decode() if LEFT else ""
 res["velocita_init"] = {"sha256": sha(src.encode()), "bytes": len(src), "imports": re.findall(r"^(?:from|import)\s+([\w.]+)", src, re.M),
                         "defines": re.findall(r"^(?:def|class)\s+(\w+)", src, re.M),
                         "is_older_name_of_sdk_facade": "SDK facade over the integrated vLLM" in src}
