@@ -27,6 +27,14 @@ def check(results, name, ok, detail=""):
 def finish(stage, results, extra=None):
     # WARNING/SKIPPED = a documented limitation (e.g. cuobjdump absent); it never hides a FAIL and never counts as a verified PASS.
     status = "PASS" if results and all(r["status"] in OK_STATUSES for r in results) else "FAIL"
+    try:   # Kaggle's /kaggle/working is limited to 20 GiB: the evidence directory itself must fit
+        from stokastisk.limits import dir_size_bytes, LIMITS
+        used = dir_size_bytes(OUT) / 1024 ** 3
+        (extra := dict(extra or {}))["output_dir_gib"] = {"used": round(used, 3), "quota": LIMITS.working_dir_gib}
+        if used > LIMITS.working_dir_gib:
+            results.append({"check": "evidence directory within the 20 GiB Kaggle quota", "status": "FAIL", "detail": f"{used:.2f} GiB"}); status = "FAIL"
+    except Exception:  # noqa: BLE001
+        pass
     save(f"{stage}.json", {"stage": stage, "status": status, "checks": results, **(extra or {})})
     print(f"\n[{stage}] OVERALL: {status}")
     if status != "PASS":
@@ -165,10 +173,15 @@ def toolkit_versions():
 
 
 def model_revision(model):
-    """Commit hash of the locally cached snapshot (HF cache dir name), or None."""
+    """Commit hash of the cached snapshot: refs/main in the HF cache (works offline), else the snapshot dir name. None if unknown."""
     try:
-        from huggingface_hub import snapshot_download
-        return pathlib.Path(snapshot_download(model, local_files_only=True)).name
+        from huggingface_hub import constants
+        d = pathlib.Path(constants.HF_HUB_CACHE) / ("models--" + model.replace("/", "--"))
+        ref = d / "refs" / "main"
+        if ref.is_file():
+            return ref.read_text().strip()
+        snaps = sorted((d / "snapshots").iterdir()) if (d / "snapshots").is_dir() else []
+        return snaps[-1].name if snaps else None
     except Exception:  # noqa: BLE001
         return None
 
@@ -176,3 +189,31 @@ def model_revision(model):
 def insufficient(results, name, detail=""):
     results.append({"check": name, "status": "INSUFFICIENT_EVIDENCE", "detail": str(detail)})
     print(f"INSUFFICIENT_EVIDENCE {name} -- {detail}")
+
+
+def proc_detail(pid):
+    """{pid, state, cmd} from /proc (state 'Z' = zombie awaiting reap). Never raises."""
+    try:
+        stat = open(f"/proc/{pid}/stat").read(); state = stat[stat.rindex(")") + 2:].split()[0]
+        cmd = open(f"/proc/{pid}/cmdline", "rb").read().replace(b"\0", b" ").decode(errors="replace").strip()[:160]
+        return {"pid": pid, "state": state, "cmd": cmd}
+    except OSError:
+        return {"pid": pid, "state": "gone", "cmd": ""}
+
+
+def live_engine_children(pids):
+    """Children that are genuinely alive engine processes. Excluded, and reported separately: zombies (exited, not yet reaped) and the
+    multiprocessing resource_tracker helper (by design it lives until the parent exits)."""
+    d = [proc_detail(p) for p in pids]
+    live = [x for x in d if x["state"] not in ("Z", "gone") and "resource_tracker" not in x["cmd"]]
+    return live, [x for x in d if x not in live]
+
+
+def wait_children_gone(timeout=20.0):
+    """Poll (instead of a fixed sleep) until no live engine child remains. Returns (live, ignored_detail, waited_seconds)."""
+    t0 = time.time()
+    while True:
+        live, ignored = live_engine_children(process_tree())
+        if not live or time.time() - t0 > timeout:
+            return live, ignored, round(time.time() - t0, 1)
+        time.sleep(0.5)

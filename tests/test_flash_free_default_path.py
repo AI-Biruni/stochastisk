@@ -193,20 +193,50 @@ class MockedEntryPoints(unittest.TestCase):
             self.assertEqual(json.load(open(f"{d}/05_inference_tp2.json"))["status"], "ERROR")
 
 
+class ShutdownClassification(unittest.TestCase):
+    """The rc5 Kaggle run flagged a resource_tracker helper and an unreaped zombie as 'leftover engine processes' although GPU memory was fully released."""
+    def setUp(self):
+        sys.path.insert(0, str(K)); os.environ.setdefault("STOKASTISK_OUT", tempfile.mkdtemp(prefix="stk-test-"))
+        import _common; self.c = _common
+
+    def test_live_zombie_and_resource_tracker_are_distinguished(self):
+        import time
+        live = subprocess.Popen(["sleep", "30"])
+        rt = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)", "-c", "multiprocessing.resource_tracker"])
+        zom = subprocess.Popen(["true"]); time.sleep(1.0)            # exited, deliberately NOT waited -> zombie
+        try:
+            l, ignored = self.c.live_engine_children([live.pid, rt.pid, zom.pid])
+            self.assertEqual([x["pid"] for x in l], [live.pid])
+            self.assertEqual(sorted(x["pid"] for x in ignored), sorted([rt.pid, zom.pid]))
+            self.assertEqual({x["pid"]: x["state"] for x in ignored}[zom.pid], "Z")
+        finally:
+            live.kill(); rt.kill(); live.wait(); rt.wait(); zom.wait()
+
+    def test_wait_children_gone_reports_a_genuinely_live_child(self):
+        live = subprocess.Popen(["sleep", "30"])
+        try:
+            l, ignored, waited = self.c.wait_children_gone(timeout=1.5)
+            self.assertIn(live.pid, [x["pid"] for x in l])
+        finally:
+            live.kill(); live.wait()
+
+
 class ReleaseIdentity(unittest.TestCase):
-    def test_generator_release_matches_assembler_and_no_first_hit(self):
-        gen = (ROOT / "scripts/make_notebooks.py").read_text()
+    def test_generator_release_identity_is_well_formed_and_exclusive(self):
         import re
+        gen = (ROOT / "scripts/make_notebooks.py").read_text()
         rel = re.search(r'^RELEASE = "([^"]+)"', gen, re.M).group(1)
-        self.assertIn(rel, (ROOT / "scripts/release/assemble_rc5.py").read_text())
+        self.assertRegex(rel, r"^stokastisk-\d+\.\d+\.\d+-kaggle-t4-sm75-rc\d+$")
+        self.assertIn(rel, (ROOT / "RELEASE.md").read_text(), "RELEASE.md must document the release the notebooks target")
         for f in (ROOT / "notebooks").glob("*.ipynb"):
             text = f.read_text(); self.assertIn(rel, text, f.name); self.assertNotIn("hits[0]", text, f.name)
-            for old in ("-rc2", "-rc3", "-rc4"): self.assertNotIn("sm75" + old, text, f.name)
+            others = set(re.findall(r"stokastisk-\d+\.\d+\.\d+-kaggle-t4-sm75(?:-rc\d+)?", text)) - {rel}
+            self.assertEqual(others, set(), f"{f.name} mentions another release")
 
     def test_no_cuda12_toolchain_or_py311_in_release_scripts(self):
         import re
         pat = re.compile(r"cuda[-_ ]?12\.[89]|cu12[89]|/cuda-12|python3\.11", re.I)
-        allow = {"scripts/kaggle/04_nccl_summary.py", "scripts/kaggle/_common.py", "scripts/release/assemble_rc4.py", "scripts/release/assemble_rc5.py"}   # these only DETECT/describe cu12 runtime libs
+        allow = {"scripts/kaggle/04_nccl_summary.py", "scripts/kaggle/_common.py"}   # these only DETECT/describe cu12 runtime libs
         hits = []
         for base in ("scripts", "sdk", "notebooks", "requirements"):
             for f in (ROOT / base).rglob("*"):

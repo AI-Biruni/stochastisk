@@ -1,7 +1,7 @@
 """Stage 06: one TP configuration per process. usage: 06_tp_benchmark.py TP MODEL
 Same spawn rule as stage 05: all vLLM work is under `if __name__ == "__main__":` because vLLM's spawned workers re-import this file."""
 import os, sys, time
-from _common import OUT, check, finish, gpu_used_mib, model_revision, process_tree, run_guarded, tree_loaded_libs, versions
+from _common import OUT, check, finish, gpu_used_mib, model_revision, proc_detail, process_tree, run_guarded, tree_loaded_libs, versions, wait_children_gone
 
 
 def main() -> int:
@@ -30,9 +30,9 @@ def main() -> int:
     ptoks = sum(len(o.prompt_token_ids) for o in po)
     best = min(lat)
     peak = [max(a, b) for a, b in zip(peak or [], gpu_used_mib() or [])] or peak
-    libs = tree_loaded_libs(); children = process_tree()
-    llm.close(); time.sleep(3); leftover = process_tree()
-    check(R, "engine shutdown left no child processes", not leftover, leftover)
+    libs = tree_loaded_libs(); children = [proc_detail(p) for p in process_tree()]
+    llm.close(); leftover, ignored, waited = wait_children_gone()
+    check(R, "engine shutdown left no LIVE engine process (zombies / resource_tracker reported separately)", not leftover, {"live": leftover, "ignored": ignored, "waited_s": waited})
     finish(f"06_bench_tp{tp}", R, {"tp": tp, "model": model, "model_revision": model_revision(model), "attention_backend_config": llm_backend, "loaded_libraries_by_pid": libs, "engine_child_pids": children, "versions": versions(), "load_seconds": load, "runs_seconds": lat, "tokens_per_run": toks,
            "tok_per_s_best": toks / best, "decode_latency_s_best": best, "prefill_tokens": ptoks, "prefill_seconds": pdt, "prefill_tok_per_s": ptoks / pdt,
            "gpu_used_MiB": {"before_load": mem_before, "peak_sampled": peak, "after_close": gpu_used_mib()}})

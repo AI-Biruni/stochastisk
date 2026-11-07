@@ -1,9 +1,9 @@
 # Stokastisk 0.3.0 — T4/Triton-only architecture
 
-**Status: RELEASE CANDIDATE — STATICALLY VERIFIED, LOCALLY TESTED, KAGGLE TEST PENDING.** Not production ready.
+**Status: release candidate — see `RELEASE.md`.**
 
 ## Target (single supported configuration)
-Kaggle, Python 3.13, PyTorch 2.11.0+cu130, CUDA 13.0, Triton 3.6.0, NCCL 2.28.9, glibc 2.39, driver 580.x, **2 × Tesla T4 (SM75, 15 GiB), no peer access, PHB topology**.
+Kaggle, Python 3.13, PyTorch 2.11.0+cu130, CUDA 13.0, Triton 3.6.0, glibc 2.39, driver 580.x, **4 CPU cores, ~30 GiB RAM, 20 GiB `/kaggle/working`, 2 × Tesla T4 (SM75, ~15 GiB each), no peer access, PHB topology** (`stokastisk.LIMITS`). NCCL: torch is compiled against 2.28.9; the runtime library on Kaggle is whatever `nvidia/nccl/lib/libnccl.so.2` is (observed 2.32.3, see `RELEASE.md`).
 Other GPUs are unsupported on purpose: the native extensions contain `sm_75` cubins only (no PTX).
 
 ## Components
@@ -18,7 +18,7 @@ Other GPUs are unsupported on purpose: the native extensions contain `sm_75` cub
 1. Source: vLLM `v0.25.1`, commit `752a3a504485790a2e8491cacbb35c137339ad34` (verified against the tarball header and the GitHub tag API).
 2. Native extensions (`_C_stable_libtorch`, `_moe_C_stable_libtorch`, `cumem_allocator`, `spinloop`, `fs_io_C`, `_rust_tool_parser`) come from the **existing 5.5 h local build** (NVCC 13.0.48, `TORCH_CUDA_ARCH_LIST=7.5`). They were *not* rebuilt: the previous build was audited and found CUDA-13/sm_75-only. That build also compiled FlashAttention 2/3 binaries, which are **not included**. A from-scratch rebuild that never compiles them was not performed (≈5.5 h) and remains an open item.
 3. Python tree: `stage.zip` (stripped vLLM Python tree, 2,560 files) — but `stage.zip`'s own `.so` files link **`libcudart.so.12`** and were therefore discarded and replaced by the CUDA-13 build outputs above.
-4. FlashAttention/FlashInfer/FlashMLA removal (`scripts/release/build_t4_tree.py`): `vllm_flash_attn/`, `third_party/flashmla/` removed wholesale; 15 further modules removed because they import FlashInfer/FlashAttention/FlashMLA at module level (AST-detected, listed in `evidence/…`). 
+4. FlashAttention/FlashInfer/FlashMLA removal (`scripts/release/build_t4_tree.py`): `vllm_flash_attn/`, `third_party/flashmla/` removed wholesale; 15 further modules removed because they import FlashInfer/FlashAttention/FlashMLA at module level (AST-detected, listed in the release `evidence/`). 
 5. Patches (`patches/`): 5 files changed so that the core still imports — `fa_utils.py` (names stubbed), `rotary_embedding/common.py` (`forward_cuda` → native torch implementation instead of the Triton rotary kernel that lived inside `vllm_flash_attn`), `fused_moe/all2all_utils.py`, `compilation/passes/pass_manager.py`, `config/compilation.py` (FlashInfer allreduce fusion absent).
 6. Metadata rewritten: `Requires-Dist` is only the import-proven core; the upstream `cuda.txt` dependencies (flashinfer, cutlass-dsl, humming-kernels, …) are gone. One deliberate deviation: `fastapi>=0.133.0` instead of `<0.137` (Kaggle ships 0.141.1; the import sweep passes with it).
 
@@ -35,7 +35,7 @@ Other GPUs are unsupported on purpose: the native extensions contain `sm_75` cub
 | `libtorch*`, `libc10*` | dynamic; Kaggle's PyTorch |
 | Triton attention kernels | JIT-compiled by Triton 3.6.0 at run time (no cubin shipped) |
 | device code in `.so` | `sm_75` cubins only (`manifests/CUDA-ARCH-MANIFEST.json`) |
-| NCCL | PyTorch's (2.28.9) |
+| NCCL | the `libnccl.so.2` found by torch's RUNPATH in Kaggle's image (observed 2.32.3+cuda12.9) |
 No CUDA library is bundled. Static-vs-dynamic of individual CUDA symbols was not analysed beyond `DT_NEEDED`. glibc requirement of the native files: max GLIBC 2.38 (Kaggle has 2.39).
 
 ## NCCL / tensor parallel

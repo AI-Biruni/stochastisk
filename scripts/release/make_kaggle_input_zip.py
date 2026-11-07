@@ -10,7 +10,7 @@ import hashlib, json, pathlib, re, shutil, sys, zipfile
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 name = sys.argv[1]
 BUNDLE = ROOT / "dist-rc" / name
-OUT = pathlib.Path(sys.argv[2]) if len(sys.argv) > 2 else ROOT / "stochastisk-kaggle-input"
+OUT = pathlib.Path(sys.argv[2]) if len(sys.argv) > 2 else ROOT / "stokastisk-kaggle-input"
 ZIP = OUT / f"{name}-kaggle-input.zip"
 SCRIPTS = ["01_env_audit", "02_install", "03_single_gpu", "04_nccl_launch", "04_nccl_dual_gpu", "04_nccl_summary", "05_inference",
            "05_backend_evidence", "06_tp_benchmark", "07_summary", "_common"]

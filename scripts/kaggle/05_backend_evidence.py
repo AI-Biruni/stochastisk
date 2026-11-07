@@ -4,7 +4,7 @@ Format verified against vLLM 0.25.1 vllm/platforms/cuda.py:
   auto-selected     : "Using TRITON_ATTN attention backend out of potential backends: [...]."
 A missing line is reported as INSUFFICIENT evidence (FAIL), never as a pass. Other backends are matched only by name."""
 import json, re, sys
-from _common import OUT, check, finish, insufficient
+from _common import OUT, check, finish, insufficient, warn
 
 TRITON = re.compile(r"Using (?:AttentionBackendEnum\.)?TRITON_ATTN (?:backend\.|attention backend out of potential backends)")
 OTHERS = ("FLASH_ATTN", "FLASHINFER", "FLASHMLA", "FLEX_ATTENTION", "XFORMERS", "CUTLASS_MLA", "TRITON_MLA")
@@ -31,6 +31,8 @@ def main():
             insufficient(R, f"TP{tp}: vLLM logged TRITON_ATTN selection", "no selection line in the log; did the engine start? see vllm_tp%d.log" % tp)
         check(R, f"TP{tp}: no other attention backend selected", not a["other_backend_lines"], a["other_backend_lines"][:3])
         check(R, f"TP{tp}: backend not rejected by vLLM", not a["backend_rejected"])
+        fk = re.findall(r"force killing remaining processes count=(\d+)", f.read_text(errors="replace"))
+        if fk: warn(R, f"TP{tp}: vLLM had to force-kill {fk} process(es) at shutdown", "vLLM's own log; GPU memory release is recorded in 05_inference_tp%d.json" % tp)
     (OUT / "05_backend_log_evidence.json").write_text(json.dumps(ev, indent=1))
     finish("05_backend_evidence", R, {"evidence": ev})
 
