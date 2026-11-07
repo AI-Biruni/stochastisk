@@ -14,11 +14,10 @@ OUT = pathlib.Path(sys.argv[2]) if len(sys.argv) > 2 else ROOT / "stokastisk-kag
 ZIP = OUT / f"{name}-kaggle-input.zip"
 SCRIPTS = ["01_env_audit", "02_install", "03_single_gpu", "04_nccl_launch", "04_nccl_dual_gpu", "04_nccl_summary", "05_inference",
            "05_backend_evidence", "06_tp_benchmark", "07_summary", "_common"]
-NOTEBOOKS = ["01_stokastisk_environment_audit", "02_stokastisk_installation", "03_stokastisk_single_gpu_validation",
-             "04_stokastisk_dual_gpu_nccl_validation", "05_stokastisk_vllm_inference", "06_stokastisk_tensor_parallel_benchmark"]
+NOTEBOOKS = sorted(p.stem for p in (BUNDLE / "notebooks").glob("*.ipynb"))   # optional: end-user notebooks are authored separately
 REQUIRED = ["README.md", "BUILD.md", "INSTALL.md", "RELEASE.md", "manifests/SHA256SUMS", "requirements/kaggle-t4-core.txt",
             "wheels/stokastisk-0.3.0-py3-none-any.whl", "wheels/vllm-0.25.1-cp38-abi3-linux_x86_64.whl",
-            *[f"scripts/kaggle/{s}.py" for s in SCRIPTS], *[f"notebooks/{n}.ipynb" for n in NOTEBOOKS]]
+            *[f"scripts/kaggle/{s}.py" for s in SCRIPTS]]
 BAD_PARTS = {".git", "__pycache__", ".pytest_cache", ".ipynb_checkpoints", "notebooks-executed-with-output"}
 BAD_NAMES = {"tokens.env", ".env", "id_rsa", "id_ed25519"}
 BAD_SUBSTR = ("flashinfer", "vllm_flash_attn", "flash_attn", "flashmla")

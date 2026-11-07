@@ -40,12 +40,6 @@ class Fetch(unittest.TestCase):
         with tempfile.TemporaryDirectory() as hub, tempfile.TemporaryDirectory() as dest:
             with self.assertRaisesRegex(RuntimeError, "manifest name"): fr.fetch_release(REL, dest, base=make_hub(hub, manifest_name="stokastisk-0.3.0-other"))
 
-    def test_notebooks_embed_the_same_downloader(self):
-        src = (ROOT / "scripts/fetch_release.py").read_text().split('if __name__ == "__main__":')[0].split('"""', 2)[2].strip()
-        for f in (ROOT / "notebooks").glob("*.ipynb"):
-            cell = "".join(json.loads(f.read_text())["cells"][2]["source"])
-            self.assertIn(src, cell, f.name)
-
 
 if __name__ == "__main__":
     unittest.main()

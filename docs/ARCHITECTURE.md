@@ -1,6 +1,6 @@
 # Stokastisk 0.3.0 — T4/Triton-only architecture
 
-**Status: release candidate — see `RELEASE.md`.**
+**Status: rc6 passed notebooks 01–06 on Kaggle (2 × T4) — see `RELEASE.md`.**
 
 ## Target (single supported configuration)
 Kaggle, Python 3.13, PyTorch 2.11.0+cu130, CUDA 13.0, Triton 3.6.0, glibc 2.39, driver 580.x, **4 CPU cores, ~30 GiB RAM, 20 GiB `/kaggle/working`, 2 × Tesla T4 (SM75, ~15 GiB each), no peer access, PHB topology** (`stokastisk.LIMITS`). NCCL: torch is compiled against 2.28.9; the runtime library on Kaggle is whatever `nvidia/nccl/lib/libnccl.so.2` is (observed 2.32.3, see `RELEASE.md`).
@@ -12,7 +12,7 @@ Other GPUs are unsupported on purpose: the native extensions contain `sm_75` cub
 | `stokastisk-0.3.0-py3-none-any.whl` | pure-Python SDK (`import stokastisk`): config validation, T4 checks, NCCL helpers, prohibited-package diagnostics, thin wrapper over `vllm.LLM` |
 | `vllm-0.25.1-cp38-abi3-linux_x86_64.whl` | vLLM 0.25.1 **derived** T4-only distribution (see below) |
 | `requirements/` | exact `--no-deps` pins + constraints + prohibited list |
-| `scripts/kaggle`, `notebooks/` | installer and six acceptance stages (not executed by the author) |
+| `scripts/kaggle` | installer and the six acceptance stages (run by the project owner on Kaggle) |
 
 ### How the vLLM wheel was made (honest provenance)
 1. Source: vLLM `v0.25.1`, commit `752a3a504485790a2e8491cacbb35c137339ad34` (verified against the tarball header and the GitHub tag API).

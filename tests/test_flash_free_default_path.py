@@ -222,23 +222,19 @@ class ShutdownClassification(unittest.TestCase):
 
 
 class ReleaseIdentity(unittest.TestCase):
-    def test_generator_release_identity_is_well_formed_and_exclusive(self):
+    def test_documented_release_identity_is_well_formed(self):
         import re
-        gen = (ROOT / "scripts/make_notebooks.py").read_text()
-        rel = re.search(r'^RELEASE = "([^"]+)"', gen, re.M).group(1)
+        rel = re.search(r"Current release: `(stokastisk-[^`]+)`", (ROOT / "RELEASE.md").read_text()).group(1)
         self.assertRegex(rel, r"^stokastisk-\d+\.\d+\.\d+-kaggle-t4-sm75-rc\d+$")
-        self.assertIn(rel, (ROOT / "RELEASE.md").read_text(), "RELEASE.md must document the release the notebooks target")
-        for f in (ROOT / "notebooks").glob("*.ipynb"):
-            text = f.read_text(); self.assertIn(rel, text, f.name); self.assertNotIn("hits[0]", text, f.name)
-            others = set(re.findall(r"stokastisk-\d+\.\d+\.\d+-kaggle-t4-sm75(?:-rc\d+)?", text)) - {rel}
-            self.assertEqual(others, set(), f"{f.name} mentions another release")
+        fetch = (ROOT / "scripts/fetch_release.py").read_text()
+        self.assertNotIn("hits[0]", fetch)
 
     def test_no_cuda12_toolchain_or_py311_in_release_scripts(self):
         import re
         pat = re.compile(r"cuda[-_ ]?12\.[89]|cu12[89]|/cuda-12|python3\.11", re.I)
         allow = {"scripts/kaggle/04_nccl_summary.py", "scripts/kaggle/_common.py"}   # these only DETECT/describe cu12 runtime libs
         hits = []
-        for base in ("scripts", "sdk", "notebooks", "requirements"):
+        for base in ("scripts", "sdk", "requirements"):
             for f in (ROOT / base).rglob("*"):
                 if f.is_file() and f.suffix in (".py", ".sh", ".txt", ".ipynb", ".toml") and "__pycache__" not in f.parts:
                     rel = f.relative_to(ROOT).as_posix()
