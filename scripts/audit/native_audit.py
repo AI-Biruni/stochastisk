@@ -5,7 +5,6 @@ import hashlib, json, pathlib, re, shutil, subprocess, sys, tempfile, zipfile
 whl, out = sys.argv[1:3]
 CUOBJ = shutil.which("cuobjdump") or "/usr/local/cuda-13.0/bin/cuobjdump"
 def run(*a): r = subprocess.run(a, capture_output=True, text=True); return r.stdout + r.stderr
-def ver(items, pre): return sorted({m for m in items}, key=lambda s: [int(x) for x in re.findall(r"\d+", s)])[-1:] 
 res = {"wheel": pathlib.Path(whl).name, "wheel_sha256": hashlib.sha256(pathlib.Path(whl).read_bytes()).hexdigest(), "cuobjdump": run(CUOBJ, "--version").strip().splitlines()[-1:] , "objects": []}
 with tempfile.TemporaryDirectory() as d:
     z = zipfile.ZipFile(whl)
