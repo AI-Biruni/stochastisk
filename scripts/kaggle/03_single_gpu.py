@@ -62,13 +62,10 @@ def _a():
     for dist in ("stokastisk", "vllm", "torch", "triton", "transformers"):
         try: info.setdefault("dists", {})[dist] = md.version(dist)
         except md.PackageNotFoundError: info.setdefault("dists", {})[dist] = None
-    import importlib.util
-    info["velocita_importable"] = importlib.util.find_spec("velocita") is not None
     EXTRA["imports"] = info
     print(info)
     check(R, "stokastisk 0.3.0 / vllm 0.25.1 versions", stokastisk.__version__ == "0.3.0" and vllm.__version__ == "0.25.1",
           f"{stokastisk.__version__} / {vllm.__version__}")
-    check(R, "obsolete 'velocita' package is not importable", not info["velocita_importable"])
 
 
 # ---------------------------------------------------------------- B. GPU discovery

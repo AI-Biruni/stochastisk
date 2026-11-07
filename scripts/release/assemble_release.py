@@ -27,6 +27,9 @@ for f in ("README.md", "INSTALL.md", "BUILD.md", "RELEASE.md"): shutil.copy2(ROO
 import tempfile as _tf
 sys.path.insert(0, str(ROOT / "tests")); from test_wheel_matches_source import wheel_drift  # noqa: E402
 base_w = {w.name: sha(w) for w in sorted((S / "wheels").glob("*.whl"))}
+# drop evidence that only described the retired stage.zip workflow / earlier candidates (history stays in git and in the older release dirs)
+for pat in ("stage-*.json", "source-archive-audit.json", "rc*-test-results.json", "native-binary-audit-rc*.json"):
+    for f in (B / "evidence").glob(pat): f.unlink()
 # vLLM wheel (all native code): byte-identical to the base. stokastisk wheel (pure Python): rebuilt from sdk/ and checked against it.
 import tempfile as _tf
 sys.path.insert(0, str(ROOT / "tests")); from test_wheel_matches_source import wheel_drift  # noqa: E402
@@ -45,7 +48,7 @@ assert (B / "patches/0003-t4-flashinfer-free-default-path.patch").read_text() ==
 os.environ["STOKASTISK_VLLM_WHEEL"] = str(B / "wheels" / vname)
 # evidence: namespace audit + wheel audit
 (B / "evidence").mkdir(exist_ok=True)
-ns = {w.name: [n for n in zipfile.ZipFile(w).namelist() if re.search(r"velocita|stochastisk", n, re.I)] for w in (B / "wheels").glob("*.whl")}
+ns = {w.name: [n for n in zipfile.ZipFile(w).namelist() if re.search(r"velocit\w*|stoch\w*tisk", n, re.I)] for w in (B / "wheels").glob("*.whl")}
 assert not any(ns.values()), f"obsolete/misspelled namespace inside a wheel: {ns}"
 (B / "evidence/namespace-audit.json").write_text(json.dumps({"canonical_package": "stokastisk", "wheel_members_with_obsolete_or_misspelled_names": ns}, indent=1))
 (B / "evidence/wheel-vs-source.json").write_text(json.dumps({"stokastisk_wheel": sname, "sha256": wheels[sname], "previous_wheel_sha256": base_w[sname], "drift_vs_sdk": drift}, indent=1))
