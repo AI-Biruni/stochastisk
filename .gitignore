@@ -29,24 +29,25 @@ reports/
 
 # Not for the source repository
 stage.zip
-project-stochastisk-files.txt
+project-stokastisk-files.txt
 assets/
 logs/
 legacy/
 patches/*.orig
 
 dist-rc/
-evidence-rc/inventory-*.tsv
-evidence-rc/preserved-hashes-*.txt
+evidence-rc/
+manifests/
+backups/
 
 # local Kaggle execution outputs (never publish)
 notebooks-executed-with-output/
 
 # local kaggle input
-stochastisk-kaggle-input
+stokastisk-kaggle-input
 
 #local kaggle analysis
-stochastisk-analysis
+stokastisk-analysis
 
 # local pre-repair backups
 backups/

@@ -12,7 +12,7 @@ Evidence of the attention backend (all required, none sufficient alone):
   2. a FRESH TRITON_CACHE_DIR holds compiled `kernel_unified_attention` artifacts after generation (execution-level)
   3. 05_backend_evidence.py finds vLLM's own `Using AttentionBackendEnum.TRITON_ATTN backend.` log line and no other backend."""
 import json, os, pathlib, shutil, sys, time
-from _common import OUT, check, finish, gpu_used_mib, model_revision, process_tree, run_guarded, tree_loaded_libs, versions
+from _common import OUT, check, finish, gpu_used_mib, model_revision, proc_detail, process_tree, run_guarded, tree_loaded_libs, versions, wait_children_gone
 
 
 def main() -> int:
@@ -58,15 +58,14 @@ def main() -> int:
     flat = sorted({x for v in libs.values() if isinstance(v, list) for x in v})
     bad = [x for x in flat if any(k in x.lower() for k in ("vllm_flash_attn", "_vllm_fa", "flashinfer", "flashmla"))]
     check(R, "no FlashAttention/FlashInfer/FlashMLA library mapped in any process of this run", not bad, bad or f"{len(flat)} CUDA/NCCL libs inspected")
-    children = process_tree()
+    children = [proc_detail(p) for p in process_tree()]
     llm.close()
-    time.sleep(3)
-    leftover = process_tree()
-    check(R, "engine shutdown left no child processes", not leftover, leftover)
+    leftover, ignored, waited = wait_children_gone()
+    check(R, "engine shutdown left no LIVE engine process (zombies / resource_tracker reported separately)", not leftover, {"live": leftover, "ignored": ignored, "waited_s": waited})
     mem_after = gpu_used_mib()
     finish(stage, R, {"model": model, "tp": tp, "attention_backend_config": backend, "versions": versions(), "load_seconds": load_s,
                       "model_revision": model_revision(model), "generation": res, "triton_attention_artifacts": arts[:10],
-                      "loaded_libraries_by_pid": libs, "engine_child_pids": children, "shutdown": {"children_after_close": leftover, "clean": not leftover},
+                      "loaded_libraries_by_pid": libs, "engine_child_pids": children, "shutdown": {"live_after_close": leftover, "ignored_after_close": ignored, "waited_s": waited, "clean": not leftover},
                       "paris_in_output (informational)": "Paris" in res["decode_short"]["text"],
                       "gpu_used_MiB": {"before_load": mem_before, "peak_sampled_after_generation": peak, "after_close": mem_after},
                       "note": "gpu_used_MiB is device-wide nvidia-smi; 'peak' is the max of samples taken between generations, not a continuous peak."})

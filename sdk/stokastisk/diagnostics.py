@@ -131,4 +131,6 @@ def report() -> dict[str, Any]:
     r["flash_attn_native_loaded"] = flash_attn_native_loaded()
     r["prohibited"] = prohibited_report()
     r["native_extensions"] = check_native_extensions()
+    from .limits import check_resources
+    r["kaggle_resources"] = check_resources()
     return r

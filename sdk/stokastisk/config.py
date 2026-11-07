@@ -6,6 +6,7 @@ from dataclasses import dataclass, field, asdict
 from typing import Any
 
 from .errors import ConfigurationError
+from .limits import LIMITS, cpu_thread_env
 
 ALLOWED_ATTENTION_BACKENDS = ("TRITON_ATTN",)
 FORBIDDEN_ATTENTION_MARKERS = ("FLASH", "FA2", "FA3", "FA4")
@@ -52,6 +53,8 @@ class StokastiskConfig:
             raise ConfigurationError("tensor_parallel_size must be 1 or 2 (two Tesla T4 target)")
         if not 0.1 <= self.gpu_memory_utilization <= 0.98:
             raise ConfigurationError("gpu_memory_utilization must be within [0.1, 0.98]")
+        if self.gpu_memory_utilization * LIMITS.gpu_vram_gib > LIMITS.gpu_vram_gib:   # pragma: no cover - guards future edits of the bounds
+            raise ConfigurationError("gpu_memory_utilization exceeds the Kaggle T4 VRAM")
         if self.dtype in ("bfloat16", "bf16"):
             raise ConfigurationError("T4 (SM75) has no bfloat16 support; use 'half'")
 
@@ -78,6 +81,8 @@ class StokastiskConfig:
         """Export NCCL settings (never overriding values the user already set)."""
         applied = {}
         for k, v in VLLM_ENV_NO_FLASHINFER.items():
+            os.environ.setdefault(k, v)
+        for k, v in cpu_thread_env(self.tensor_parallel_size).items():   # 4 Kaggle cores shared by the TP worker processes
             os.environ.setdefault(k, v)
         if self.apply_nccl_env:
             for k, v in self.nccl_env.items():
