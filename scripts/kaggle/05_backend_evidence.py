@@ -4,7 +4,7 @@ Format verified against vLLM 0.25.1 vllm/platforms/cuda.py:
   auto-selected     : "Using TRITON_ATTN attention backend out of potential backends: [...]."
 A missing line is reported as INSUFFICIENT evidence (FAIL), never as a pass. Other backends are matched only by name."""
 import json, re, sys
-from _common import OUT, check, finish
+from _common import OUT, check, finish, insufficient
 
 TRITON = re.compile(r"Using (?:AttentionBackendEnum\.)?TRITON_ATTN (?:backend\.|attention backend out of potential backends)")
 OTHERS = ("FLASH_ATTN", "FLASHINFER", "FLASHMLA", "FLEX_ATTENTION", "XFORMERS", "CUTLASS_MLA", "TRITON_MLA")
@@ -23,10 +23,12 @@ def main():
     for tp in tps:
         f = OUT / f"vllm_tp{tp}.log"
         if not f.is_file():
-            check(R, f"TP{tp}: vllm log present", False, str(f)); continue
+            insufficient(R, f"TP{tp}: vllm log present", str(f)); continue
         ev[tp] = a = analyse(f.read_text(errors="replace"))
-        check(R, f"TP{tp}: vLLM logged TRITON_ATTN selection", len(a["triton_lines"]) >= 1,
-              f"{len(a['triton_lines'])} line(s)" if a["triton_lines"] else "no selection line: evidence INSUFFICIENT (did the engine start? see vllm_tp%d.log)" % tp)
+        if a["triton_lines"]:
+            check(R, f"TP{tp}: vLLM logged TRITON_ATTN selection", True, f"{len(a['triton_lines'])} line(s) (count is not asserted: it depends on vLLM's process topology)")
+        else:
+            insufficient(R, f"TP{tp}: vLLM logged TRITON_ATTN selection", "no selection line in the log; did the engine start? see vllm_tp%d.log" % tp)
         check(R, f"TP{tp}: no other attention backend selected", not a["other_backend_lines"], a["other_backend_lines"][:3])
         check(R, f"TP{tp}: backend not rejected by vLLM", not a["backend_rejected"])
     (OUT / "05_backend_log_evidence.json").write_text(json.dumps(ev, indent=1))
