@@ -2,7 +2,7 @@
 import hashlib, importlib, json, os, pathlib, subprocess, sys, time, traceback
 
 # Statuses: PASS FAIL ERROR SKIPPED WARNING NOT_RUN. Only these never fail a stage; FAIL/ERROR/NOT_RUN do.
-OK_STATUSES = ("PASS", "WARNING", "SKIPPED")
+OK_STATUSES = ("PASS", "WARNING", "SKIPPED")   # INSUFFICIENT_EVIDENCE is deliberately NOT here
 OUT = pathlib.Path(os.environ.get("STOKASTISK_OUT", "/kaggle/working/stokastisk-acceptance"))
 OUT.mkdir(parents=True, exist_ok=True)
 
@@ -96,6 +96,10 @@ def versions():
                      for i in range(torch.cuda.device_count())]
     except Exception as e:  # noqa: BLE001
         v["torch_probe_error"] = f"{type(e).__name__}: {e}"
+    try:
+        v["cuda_toolkit"] = toolkit_versions()
+    except Exception as e:  # noqa: BLE001
+        v["cuda_toolkit_error"] = f"{type(e).__name__}: {e}"
     return v
 
 
@@ -103,7 +107,9 @@ def run_guarded(stage, fn):
     """Run `fn()` so that an exception ALWAYS leaves <stage>.json with status ERROR and the complete traceback
     (previously a crash left no result file at all), then exits non-zero."""
     try:
-        fn()
+        rc = fn()
+        if isinstance(rc, int) and rc != 0:
+            sys.exit(rc)
     except SystemExit:
         raise
     except BaseException:  # noqa: BLE001
@@ -112,3 +118,61 @@ def run_guarded(stage, fn):
         save(f"{stage}.json", {"stage": stage, "status": "ERROR", "checks": [], "traceback": tb})
         print(f"\n[{stage}] OVERALL: ERROR")
         sys.exit(1)
+
+
+LIB_PAT = ("libnccl", "libcudart", "libcublas", "libcudnn", "libnvrtc", "libflash", "flashinfer", "vllm_flash_attn", "_vllm_fa", "flashmla")
+
+
+def loaded_libs(pid):
+    """Shared objects of interest actually mapped into process `pid` (from /proc/<pid>/maps) -> sorted unique paths. Never raises."""
+    out = set()
+    try:
+        for line in open(f"/proc/{pid}/maps", errors="replace"):
+            path = line.split(None, 5)[5].strip() if len(line.split(None, 5)) > 5 else ""
+            if path.startswith("/") and any(k in os.path.basename(path).lower() or k in path.lower() for k in LIB_PAT):
+                out.add(path)
+    except OSError as e:
+        return {"error": f"{type(e).__name__}: {e}"}
+    return sorted(out)
+
+
+def process_tree(pid=None):
+    """PIDs of all descendants of `pid` (default: this process), from /proc/*/stat."""
+    pid = pid or os.getpid(); kids = {}
+    for d in os.listdir("/proc"):
+        if d.isdigit():
+            try:
+                stat = open(f"/proc/{d}/stat").read(); ppid = int(stat[stat.rindex(")") + 2:].split()[1]); kids.setdefault(ppid, []).append(int(d))
+            except (OSError, ValueError):
+                pass
+    seen, todo = [], list(kids.get(pid, []))
+    while todo:
+        c = todo.pop(); seen.append(c); todo += kids.get(c, [])
+    return sorted(seen)
+
+
+def tree_loaded_libs():
+    """{pid: libs} for this process and every descendant (vLLM EngineCore / Worker processes) -- the runtime-truth for CUDA/NCCL/Flash libs."""
+    return {str(p): loaded_libs(p) for p in [os.getpid(), *process_tree()]}
+
+
+def toolkit_versions():
+    """CUDA Toolkit (nvcc) and pip-visible NVIDIA runtime packages, observed -- including BOTH nccl-cu12/cu13 if both are installed."""
+    import importlib.metadata as md
+    nv = {d.metadata["Name"]: d.version for d in md.distributions() if d.metadata["Name"] and d.metadata["Name"].lower().startswith(("nvidia-nccl", "nvidia-cuda-runtime", "nvidia-cuda-nvcc"))}
+    nvcc = sh("nvcc --version | tail -1") if sh("which nvcc") else "nvcc not found"
+    return {"nvcc": nvcc, "nvidia_packages": nv}
+
+
+def model_revision(model):
+    """Commit hash of the locally cached snapshot (HF cache dir name), or None."""
+    try:
+        from huggingface_hub import snapshot_download
+        return pathlib.Path(snapshot_download(model, local_files_only=True)).name
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def insufficient(results, name, detail=""):
+    results.append({"check": name, "status": "INSUFFICIENT_EVIDENCE", "detail": str(detail)})
+    print(f"INSUFFICIENT_EVIDENCE {name} -- {detail}")

@@ -2,14 +2,22 @@
 """Generate the six Kaggle notebooks. Cells only call the bundled scripts; nothing is executed here."""
 import json, pathlib
 OUT = pathlib.Path(__file__).resolve().parents[1] / "notebooks"
-FIND = '''import glob, os, pathlib
-# Locate the release bundle (the Kaggle dataset holding manifests/SHA256SUMS). Override with STOKASTISK_BUNDLE.
-hits = [pathlib.Path(p).parent.parent for p in glob.glob("/kaggle/input/**/manifests/SHA256SUMS", recursive=True)]
-BUNDLE = pathlib.Path(os.environ.get("STOKASTISK_BUNDLE") or (hits[0] if hits else "")) 
-assert (BUNDLE / "manifests" / "SHA256SUMS").is_file(), "attach the stokastisk-0.3.0 release dataset to this notebook"
+RELEASE = "stokastisk-0.3.0-kaggle-t4-sm75-rc5"      # the ONE release these notebooks are generated for (checked by tests against the assembler)
+FIND = '''import glob, json, os, pathlib
+# Explicit release identity: this notebook accepts ONLY the bundle directory named RELEASE whose RELEASE-MANIFEST.json says the same name.
+# (Several Kaggle datasets may be attached; an older rc is never silently selected.) Override the search root with STOKASTISK_BUNDLE.
+RELEASE = "@@RELEASE@@"
+cands = [pathlib.Path(p).parent.parent for p in glob.glob("/kaggle/input/**/manifests/SHA256SUMS", recursive=True)]
+if os.environ.get("STOKASTISK_BUNDLE"): cands = [pathlib.Path(os.environ["STOKASTISK_BUNDLE"])]
+match = [c for c in cands if c.name == RELEASE]
+assert match, f"release {RELEASE!r} not found. Attached bundles: {sorted(str(c) for c in cands)}. Attach the {RELEASE} dataset."
+assert len({(c / "manifests" / "SHA256SUMS").read_bytes() for c in match}) == 1, f"several DIFFERENT copies of {RELEASE}: {match}"
+BUNDLE = match[0]
+_m = json.loads((BUNDLE / "manifests" / "RELEASE-MANIFEST.json").read_text())
+assert _m.get("name") == RELEASE, f"manifest name {_m.get('name')!r} != expected {RELEASE!r}"
 SCRIPTS = BUNDLE / "scripts" / "kaggle"
 os.environ["STOKASTISK_OUT"] = "/kaggle/working/stokastisk-acceptance"
-print("bundle:", BUNDLE)'''
+print("release:", RELEASE, "| bundle:", BUNDLE, "| other attached bundles ignored:", sorted(str(c) for c in cands if c != BUNDLE))'''.replace("@@RELEASE@@", RELEASE)
 # Kaggle runs EVERY notebook in a fresh session: what notebook 02 installed does not exist in 03-06 (root cause of the
 # notebook-03 'ModuleNotFoundError: No module named stokastisk'). 03-06 therefore re-run the idempotent installer first
 # (SHA256-verified, --no-deps, ~0 pip calls when satisfied) and then print provenance; both fail loudly.

@@ -18,6 +18,12 @@ NCCL_ENV_NO_P2P: dict[str, str] = {
     "NCCL_CUMEM_ENABLE": "0",  # vLLM cumem sleep-mode allocator is not used here
 }
 
+# vLLM FlashInfer integrations are not shipped in this build; pin them off (user-set values are never overridden).
+VLLM_ENV_NO_FLASHINFER: dict[str, str] = {
+    "VLLM_USE_FLASHINFER_SAMPLER": "0",
+    "VLLM_ALLREDUCE_USE_FLASHINFER": "0",
+}
+
 
 @dataclass
 class StokastiskConfig:
@@ -71,6 +77,8 @@ class StokastiskConfig:
     def apply_environment(self) -> dict[str, str]:
         """Export NCCL settings (never overriding values the user already set)."""
         applied = {}
+        for k, v in VLLM_ENV_NO_FLASHINFER.items():
+            os.environ.setdefault(k, v)
         if self.apply_nccl_env:
             for k, v in self.nccl_env.items():
                 if k not in os.environ:

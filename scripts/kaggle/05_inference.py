@@ -12,10 +12,10 @@ Evidence of the attention backend (all required, none sufficient alone):
   2. a FRESH TRITON_CACHE_DIR holds compiled `kernel_unified_attention` artifacts after generation (execution-level)
   3. 05_backend_evidence.py finds vLLM's own `Using AttentionBackendEnum.TRITON_ATTN backend.` log line and no other backend."""
 import json, os, pathlib, shutil, sys, time
-from _common import OUT, check, finish, gpu_used_mib, run_guarded, versions
+from _common import OUT, check, finish, gpu_used_mib, model_revision, process_tree, run_guarded, tree_loaded_libs, versions
 
 
-def main():
+def main() -> int:
     tp = int(sys.argv[1]) if len(sys.argv) > 1 else 1
     model = sys.argv[2] if len(sys.argv) > 2 else "Qwen/Qwen2.5-0.5B-Instruct"
     stage = f"05_inference_tp{tp}"
@@ -54,15 +54,25 @@ def main():
     check(R, "Triton cache holds compiled kernel_unified_attention (kernel actually ran)", bool(arts), arts[:4] or "no artifacts")
     check(R, "GPU memory measured", bool(peak), peak)
     backend = llm.selected_attention_backend()
+    libs = tree_loaded_libs()            # runtime truth for THIS run: libs mapped in the parent + every vLLM child (EngineCore/Worker)
+    flat = sorted({x for v in libs.values() if isinstance(v, list) for x in v})
+    bad = [x for x in flat if any(k in x.lower() for k in ("vllm_flash_attn", "_vllm_fa", "flashinfer", "flashmla"))]
+    check(R, "no FlashAttention/FlashInfer/FlashMLA library mapped in any process of this run", not bad, bad or f"{len(flat)} CUDA/NCCL libs inspected")
+    children = process_tree()
     llm.close()
-    time.sleep(2)
+    time.sleep(3)
+    leftover = process_tree()
+    check(R, "engine shutdown left no child processes", not leftover, leftover)
     mem_after = gpu_used_mib()
     finish(stage, R, {"model": model, "tp": tp, "attention_backend_config": backend, "versions": versions(), "load_seconds": load_s,
-                      "generation": res, "triton_attention_artifacts": arts[:10],
+                      "model_revision": model_revision(model), "generation": res, "triton_attention_artifacts": arts[:10],
+                      "loaded_libraries_by_pid": libs, "engine_child_pids": children, "shutdown": {"children_after_close": leftover, "clean": not leftover},
                       "paris_in_output (informational)": "Paris" in res["decode_short"]["text"],
                       "gpu_used_MiB": {"before_load": mem_before, "peak_sampled_after_generation": peak, "after_close": mem_after},
                       "note": "gpu_used_MiB is device-wide nvidia-smi; 'peak' is the max of samples taken between generations, not a continuous peak."})
 
 
 if __name__ == "__main__":
+    import multiprocessing
+    multiprocessing.freeze_support()
     run_guarded(f"05_inference_tp{sys.argv[1] if len(sys.argv) > 1 else 1}", main)

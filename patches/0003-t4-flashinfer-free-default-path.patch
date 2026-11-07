@@ -1,0 +1,47 @@
+--- a/vllm/distributed/device_communicators/cuda_communicator.py
++++ b/vllm/distributed/device_communicators/cuda_communicator.py
+@@ -70,9 +70,6 @@
+         from vllm.distributed.device_communicators.custom_all_reduce import (
+             CustomAllreduce,
+         )
+-        from vllm.distributed.device_communicators.flashinfer_all_reduce import (
+-            FlashInferAllReduce,
+-        )
+         from vllm.distributed.device_communicators.pynccl import PyNcclCommunicator
+         from vllm.distributed.device_communicators.quick_all_reduce import (
+             QuickAllReduce,
+@@ -101,6 +98,11 @@
+             )
+ 
+         if self.use_flashinfer_allreduce and self.world_size > 1:
++            # Stokastisk T4 build: imported only when explicitly requested (module is not shipped).
++            from vllm.distributed.device_communicators.flashinfer_all_reduce import (
++                FlashInferAllReduce,
++            )
++
+             self.fi_ar_comm = FlashInferAllReduce(
+                 group=self.cpu_group,
+                 device=self.device,
+--- a/vllm/v1/sample/ops/topk_topp_sampler.py
++++ b/vllm/v1/sample/ops/topk_topp_sampler.py
+@@ -41,7 +41,19 @@
+             "VLLM_USE_FLASHINFER_SAMPLER=0."
+         )
+         return False
+-    from vllm.v1.attention.backends.flashinfer import FlashInferBackend
++    try:
++        from vllm.v1.attention.backends.flashinfer import FlashInferBackend
++    except ImportError:
++        # Stokastisk T4/Triton-only build: the FlashInfer backend module is intentionally not shipped.
++        if envs.is_set("VLLM_USE_FLASHINFER_SAMPLER"):
++            raise RuntimeError(
++                "FlashInfer top-p/top-k sampling was requested but FlashInfer is not part of "
++                "this build. Unset VLLM_USE_FLASHINFER_SAMPLER=1."
++            ) from None
++        logger.info_once(
++            "FlashInfer sampling unavailable (not shipped in this build); using the native sampler."
++        )
++        return False
+ 
+     capability = current_platform.get_device_capability()
+     assert capability is not None

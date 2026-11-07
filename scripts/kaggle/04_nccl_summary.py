@@ -32,10 +32,11 @@ for rk, j in sorted(ranks.items()):
     base, after = j.get("gpu_mem_used_MiB_baseline"), j.get("gpu_mem_used_MiB_after_teardown")
     if base is None or after is None:
         check(R, f"rank{rk} GPU memory fields present", False, f"baseline={base} after={after}")
-    elif after - base <= 256:
-        check(R, f"rank{rk} GPU memory after teardown within 256 MiB of pre-init baseline", True, f"baseline {base} MiB -> {after} MiB")
     else:
-        warn(R, f"rank{rk} GPU memory after teardown exceeds baseline by >256 MiB (informational; threshold not empirically validated)", f"baseline {base} MiB -> {after} MiB")
+        # Recorded, not judged: no empirically validated threshold exists, so a number is never turned into PASS. A large increase is a WARNING only.
+        EXTRA.setdefault("gpu_memory_after_teardown_MiB", {})[f"rank{rk}"] = {"baseline": base, "after": after, "delta": after - base, "status": "MEASURED"}
+        if after - base > 256:
+            warn(R, f"rank{rk} GPU memory after teardown is {after - base} MiB above its pre-init baseline (informational; no validated threshold)", f"baseline {base} MiB -> {after} MiB")
     if j.get("tracebacks"):
         tb[f"rank{rk}"] = j["tracebacks"]
 save("04_nccl_tracebacks.json", tb)
@@ -55,6 +56,7 @@ evidence = {"log_files": list(logs), "channel_transports": channels, "transport_
 torch_nccl = (ranks.get(0) or {}).get("nccl")
 evidence["torch_reported_nccl_version"] = torch_nccl
 evidence["torch_reported_nccl_note"] = "torch.cuda.nccl.version() is the version torch was COMPILED against; 'nccl_version_in_log' is what NCCL itself printed for the library actually loaded."
+evidence["loaded_libraries_per_rank"] = {f"rank{k}": v.get("loaded_libraries") for k, v in ranks.items()}
 save("04_nccl_transport_evidence.json", evidence)
 _logged = {v.split("+")[0] for v in evidence["nccl_version_in_log"]}
 if _logged and torch_nccl and torch_nccl not in _logged:
