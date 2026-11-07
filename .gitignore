@@ -41,3 +41,9 @@ evidence-rc/preserved-hashes-*.txt
 
 # local Kaggle execution outputs (never publish)
 notebooks-executed-with-output/
+
+# local kaggle input
+stochastisk-kaggle-input
+
+#local kaggle analysis
+stochastisk-analysis
