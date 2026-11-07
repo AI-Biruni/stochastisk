@@ -88,20 +88,6 @@ class SummaryAndNotebooks(unittest.TestCase):
             r = subprocess.run([sys.executable, str(K / "07_summary.py")], env=dict(ENV, STOKASTISK_OUT=d), capture_output=True, text=True, cwd=d)
             self.assertEqual(r.returncode, 0, r.stdout); self.assertIn("NOTEBOOK 06 TP BENCHMARK: PASS", r.stdout)
 
-    def test_notebooks_05_06_fail_when_a_stage_fails(self):
-        for n in ("05_stokastisk_vllm_inference", "06_stokastisk_tensor_parallel_benchmark"):
-            nb = json.loads((ROOT / "notebooks" / f"{n}.ipynb").read_text())
-            code = [("".join(c["source"])) for c in nb["cells"] if c["cell_type"] == "code"]
-            self.assertTrue(any("assert all(v == 0 for v in rcs.values())" in c for c in code), n)
-            self.assertEqual(code[-1].count("assert"), 1, n)                      # verdict is the LAST cell: evidence zip is made first
-        n5 = "\n".join("".join(c["source"]) for c in json.loads((ROOT / "notebooks/05_stokastisk_vllm_inference.ipynb").read_text())["cells"] if c["cell_type"] == "code")
-        self.assertIn("05_backend_evidence.py", n5); self.assertIn("cwd=SCRIPTS", n5)
-
-    def test_all_notebooks_are_unexecuted(self):
-        for f in (ROOT / "notebooks").glob("*.ipynb"):
-            for c in json.loads(f.read_text())["cells"]:
-                if c["cell_type"] == "code": self.assertEqual((c["outputs"], c["execution_count"]), ([], None), f.name)
-
 
 if __name__ == "__main__":
     unittest.main()

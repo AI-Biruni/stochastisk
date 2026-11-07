@@ -17,9 +17,10 @@ ign = shutil.ignore_patterns("__pycache__", "*.pyc")
 shutil.rmtree(B / "scripts/kaggle"); shutil.copytree(ROOT / "scripts/kaggle", B / "scripts/kaggle", ignore=ign)
 shutil.rmtree(B / "scripts/release"); shutil.copytree(ROOT / "scripts/release", B / "scripts/release", ignore=ign)
 shutil.rmtree(B / "scripts/audit", ignore_errors=True); shutil.copytree(ROOT / "scripts/audit", B / "scripts/audit", ignore=ign)
-shutil.copy2(ROOT / "scripts/make_notebooks.py", B / "scripts"); shutil.copy2(ROOT / "scripts/fetch_release.py", B / "scripts")
+shutil.copy2(ROOT / "scripts/fetch_release.py", B / "scripts")
 shutil.rmtree(B / "tests"); shutil.copytree(ROOT / "tests", B / "tests", ignore=ign)
-shutil.rmtree(B / "notebooks"); shutil.copytree(ROOT / "notebooks", B / "notebooks", ignore=ign)
+shutil.rmtree(B / "notebooks", ignore_errors=True)
+if any((ROOT / "notebooks").glob("*.ipynb")): shutil.copytree(ROOT / "notebooks", B / "notebooks", ignore=ign)
 shutil.rmtree(B / "patches", ignore_errors=True); shutil.copytree(ROOT / "patches", B / "patches", ignore=ign)
 for f in ("README.md", "INSTALL.md", "BUILD.md", "RELEASE.md"): shutil.copy2(ROOT / f, B / f)
 
@@ -63,7 +64,7 @@ assert naj["all_x86_64"] and not naj["any_needs_cuda12_soname"] and not naj["any
 # tests (CPU only)
 env = dict(os.environ, CUDA_VISIBLE_DEVICES="")
 tests = {}
-for t in ("test_sdk_cpu.py", "test_installer.py", "test_notebooks.py", "test_nccl.py", "test_wheel_matches_source.py", "test_notebook05_spawn.py", "test_flash_free_default_path.py", "test_kaggle_limits.py", "test_fetch_release.py"):
+for t in ("test_sdk_cpu.py", "test_installer.py", "test_nccl.py", "test_wheel_matches_source.py", "test_notebook05_spawn.py", "test_flash_free_default_path.py", "test_kaggle_limits.py", "test_fetch_release.py"):
     r = subprocess.run([sys.executable, str(ROOT / "tests" / t)], capture_output=True, text=True, env=env)
     m = re.search(r"Ran (\d+) tests", r.stderr)
     sk = re.search(r"skipped=(\d+)", r.stderr)
@@ -123,6 +124,6 @@ with tempfile.TemporaryDirectory() as td:
     sc = sha(root / "scripts/kaggle/03_single_gpu.py") == sha(ROOT / "scripts/kaggle/03_single_gpu.py")
 integ = {"zip": zp.name, "size": zp.stat().st_size, "sha256": sha(zp), "testzip": zipfile.ZipFile(zp).testzip(), "entries": len(names), "hash_mismatches": bad,
          "forbidden": forbidden, "secret_hits": secrets, "notebooks": nbs, "script03_matches_repo": sc}
-assert not (bad or forbidden or secrets) and len(nbs) == 6 and sc, integ
+assert not (bad or forbidden or secrets) and sc, integ
 (D / f"{RC2}.zip.sha256").write_text(f"{sha(zp)}  {zp.name}\n")
 print(json.dumps(integ, indent=1))
