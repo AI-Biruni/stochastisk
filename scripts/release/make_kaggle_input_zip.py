@@ -22,7 +22,7 @@ REQUIRED = ["README.md", "BUILD.md", "INSTALL.md", "RELEASE.md", "manifests/SHA2
 BAD_PARTS = {".git", "__pycache__", ".pytest_cache", ".ipynb_checkpoints", "notebooks-executed-with-output"}
 BAD_NAMES = {"tokens.env", ".env", "id_rsa", "id_ed25519"}
 BAD_SUBSTR = ("flashinfer", "vllm_flash_attn", "flash_attn", "flashmla")
-SECRET = re.compile(rb"ghp_[A-Za-z0-9]{20}|github_pat_[A-Za-z0-9_]{20}|hf_[A-Za-z0-9]{30}")
+SECRET = re.compile(("gh" + "p_[A-Za-z0-9]{20}|github" + "_pat_[A-Za-z0-9_]{20}|hf" + "_[A-Za-z0-9]{30}").encode())   # split so this file never matches itself
 sha = lambda p: hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()  # noqa: E731
 
 assert BUNDLE.is_dir(), f"bundle not found: {BUNDLE}"
