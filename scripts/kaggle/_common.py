@@ -68,3 +68,47 @@ def require_installed(stage, modules=("stokastisk", "vllm")):
         print("\n" + hint)
         finish(stage, R, {"missing_modules": missing, "hint": hint, "script": os.path.abspath(sys.argv[0]),
                           "script_sha256": sha256(sys.argv[0])})
+
+
+def gpu_used_mib():
+    """Per-GPU used memory (MiB) from nvidia-smi -- device-wide, creates no CUDA context in the caller. None if unavailable."""
+    out = sh("nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits")
+    try:
+        return [int(x) for x in out.split()]
+    except ValueError:
+        return None
+
+
+def versions():
+    """Observed (never assumed) runtime versions. `nccl_compiled` is what torch was built against; the NCCL actually loaded
+    at runtime is recorded from NCCL's own log by the NCCL stage."""
+    v = {"python": sys.version.split()[0]}
+    for m in ("torch", "triton", "vllm", "transformers", "stokastisk"):
+        try:
+            v[m] = importlib.import_module(m).__version__
+        except Exception as e:  # noqa: BLE001
+            v[m] = f"unavailable: {type(e).__name__}"
+    try:
+        import torch
+        v["torch_cuda"] = torch.version.cuda
+        v["nccl_compiled"] = ".".join(map(str, torch.cuda.nccl.version()))
+        v["gpus"] = [{"name": torch.cuda.get_device_name(i), "capability": list(torch.cuda.get_device_capability(i))}
+                     for i in range(torch.cuda.device_count())]
+    except Exception as e:  # noqa: BLE001
+        v["torch_probe_error"] = f"{type(e).__name__}: {e}"
+    return v
+
+
+def run_guarded(stage, fn):
+    """Run `fn()` so that an exception ALWAYS leaves <stage>.json with status ERROR and the complete traceback
+    (previously a crash left no result file at all), then exits non-zero."""
+    try:
+        fn()
+    except SystemExit:
+        raise
+    except BaseException:  # noqa: BLE001
+        tb = traceback.format_exc()
+        print(tb, file=sys.stderr)
+        save(f"{stage}.json", {"stage": stage, "status": "ERROR", "checks": [], "traceback": tb})
+        print(f"\n[{stage}] OVERALL: ERROR")
+        sys.exit(1)

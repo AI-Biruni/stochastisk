@@ -52,7 +52,13 @@ evidence = {"log_files": list(logs), "channel_transports": channels, "transport_
             "interpretation": ("unknown: no 'Channel ... via <transport>' lines captured" if not channels else
                                "NCCL itself reports these per-channel transports (default selection unless 'transport_env_in_nccl_log' lists an override): " + ", ".join(channels)),
             "note": "CUDA peer capability, NCCL transport selection and actual direct GPU-to-GPU traffic are three different things; only the 'channel_transports' lines are NCCL's own statement."}
+torch_nccl = (ranks.get(0) or {}).get("nccl")
+evidence["torch_reported_nccl_version"] = torch_nccl
+evidence["torch_reported_nccl_note"] = "torch.cuda.nccl.version() is the version torch was COMPILED against; 'nccl_version_in_log' is what NCCL itself printed for the library actually loaded."
 save("04_nccl_transport_evidence.json", evidence)
+_logged = {v.split("+")[0] for v in evidence["nccl_version_in_log"]}
+if _logged and torch_nccl and torch_nccl not in _logged:
+    warn(R, "runtime NCCL differs from the NCCL torch was compiled against", f"torch compiled {torch_nccl}; NCCL log says {sorted(_logged)}. Correctness checks still ran on the runtime library.")
 check(R, "NCCL logs captured (transport evidence)", bool(logs), f"{len(logs)} file(s)")
 if not channels:
     warn(R, "NCCL transport could not be established from the logs", "reported as unknown")

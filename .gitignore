@@ -47,3 +47,6 @@ stochastisk-kaggle-input
 
 #local kaggle analysis
 stochastisk-analysis
+
+# local pre-repair backups
+backups/
