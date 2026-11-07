@@ -59,7 +59,16 @@ class LLM:
         return out[0].outputs[0].text
 
     def close(self) -> None:
+        """Shut the engine (and, for TP>1, its worker processes) down explicitly, then release cached CUDA memory."""
         eng, self._engine = self._engine, None
+        if eng is None:
+            return
+        try:
+            core = getattr(getattr(eng, "llm_engine", None), "engine_core", None)
+            if core is not None and hasattr(core, "shutdown"):
+                core.shutdown()
+        except Exception as e:  # noqa: BLE001
+            log.warning("engine shutdown raised %s: %s", type(e).__name__, e)
         del eng
         try:
             import gc, torch
